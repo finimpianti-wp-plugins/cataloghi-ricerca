@@ -14,6 +14,14 @@
     const ZOOM_MAX      = 4;
     const ZOOM_AUTO_MAX = 1.5;        // all'apertura la pagina non viene ingrandita oltre il 150%
 
+    // Testi traducibili (CR.t, passati da PHP); %s = valori in ordine
+    function t(chiave) {
+        const args = Array.prototype.slice.call(arguments, 1);
+        let i = 0;
+        const testo = (window.CR && CR.t && CR.t[chiave]) || chiave;
+        return testo.replace(/%s/g, () => (i < args.length ? args[i++] : '')).replace(/%%/g, '%');
+    }
+
     let pdfjsPromise = null;
     let el = null;                    // riferimenti al DOM del visualizzatore
     let st = null;                    // stato del documento aperto
@@ -70,22 +78,22 @@
             <div class="crv-barra">
                 <div class="crv-titolo" id="crv-titolo"></div>
                 <div class="crv-gruppo crv-nav">
-                    <button type="button" class="crv-btn" data-crv="prec" aria-label="Pagina precedente">${icona('<polyline points="15 18 9 12 15 6"/>')}</button>
+                    <button type="button" class="crv-btn" data-crv="prec" aria-label="${esc(t('v_prec'))}">${icona('<polyline points="15 18 9 12 15 6"/>')}</button>
                     <label class="crv-pagina">
-                        <span class="crv-sr">Pagina</span>
-                        <input type="text" inputmode="numeric" class="crv-input" aria-label="Numero di pagina">
+                        <span class="crv-sr">${esc(t('v_pagina', '').trim())}</span>
+                        <input type="text" inputmode="numeric" class="crv-input" aria-label="${esc(t('v_numero'))}">
                         <span class="crv-totale">/ –</span>
                     </label>
-                    <button type="button" class="crv-btn" data-crv="succ" aria-label="Pagina successiva">${icona('<polyline points="9 18 15 12 9 6"/>')}</button>
+                    <button type="button" class="crv-btn" data-crv="succ" aria-label="${esc(t('v_succ'))}">${icona('<polyline points="9 18 15 12 9 6"/>')}</button>
                 </div>
                 <div class="crv-gruppo crv-zoom">
-                    <button type="button" class="crv-btn" data-crv="zoom-meno" aria-label="Riduci">${icona('<line x1="5" y1="12" x2="19" y2="12"/>')}</button>
-                    <button type="button" class="crv-btn crv-btn-testo" data-crv="adatta" aria-label="Adatta alla larghezza"><span class="crv-zoom-val">100%</span></button>
-                    <button type="button" class="crv-btn" data-crv="zoom-piu" aria-label="Ingrandisci">${icona('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>')}</button>
+                    <button type="button" class="crv-btn" data-crv="zoom-meno" aria-label="${esc(t('v_riduci'))}">${icona('<line x1="5" y1="12" x2="19" y2="12"/>')}</button>
+                    <button type="button" class="crv-btn crv-btn-testo" data-crv="adatta" aria-label="${esc(t('v_adatta'))}"><span class="crv-zoom-val">100%</span></button>
+                    <button type="button" class="crv-btn" data-crv="zoom-piu" aria-label="${esc(t('v_ingrandisci'))}">${icona('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>')}</button>
                 </div>
                 <div class="crv-gruppo crv-azioni">
-                    <a class="crv-btn" data-crv="esterno" target="_blank" rel="noopener" aria-label="Apri il PDF in una nuova scheda" title="Apri in una nuova scheda">${icona('<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>')}</a>
-                    <button type="button" class="crv-btn crv-chiudi" data-crv="chiudi" aria-label="Chiudi">${icona('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>')}</button>
+                    <a class="crv-btn" data-crv="esterno" target="_blank" rel="noopener" aria-label="${esc(t('v_esterno'))}" title="${esc(t('v_esterno_title'))}">${icona('<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>')}</a>
+                    <button type="button" class="crv-btn crv-chiudi" data-crv="chiudi" aria-label="${esc(t('v_chiudi'))}">${icona('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>')}</button>
                 </div>
             </div>
             <div class="crv-area" tabindex="-1">
@@ -190,7 +198,7 @@
         el.input.value        = pagina;
         el.totale.textContent = '/ –';
         el.pagine.innerHTML   = '';
-        mostraStato('<span class="crv-spinner"></span><span>Apertura del catalogo…</span>');
+        mostraStato('<span class="crv-spinner"></span><span>' + esc(t('v_apertura')) + '</span>');
 
         el.root.hidden = false;
         document.documentElement.classList.add('crv-aperto');
@@ -214,7 +222,7 @@
             corrente.task.onProgress = p => {
                 if (corrente.chiuso || corrente.doc || !p.total) return;
                 const perc = Math.min(100, Math.round(p.loaded / p.total * 100));
-                mostraStato('<span class="crv-spinner"></span><span>Caricamento del catalogo… ' + perc + '%</span>');
+                mostraStato('<span class="crv-spinner"></span><span>' + esc(t('v_caricamento', perc)) + '</span>');
             };
             return corrente.task.promise;
         };
@@ -256,10 +264,10 @@
                 const dettaglio = fase + ': ' + ((err && (err.message || err.name)) || String(err))
                                 + ' — ' + opz.url;
                 mostraStato(
-                    '<div class="crv-errore"><strong>Impossibile mostrare il catalogo qui.</strong>'
-                    + '<span>Puoi aprirlo direttamente: si aprirà alla pagina ' + pagina + ' nei browser che lo supportano.</span>'
-                    + '<a class="crv-link" href="' + esc(opz.url + '#page=' + pagina) + '" target="_blank" rel="noopener">Apri il PDF</a>'
-                    + '<details class="crv-dettaglio"><summary>Dettaglio tecnico</summary><code>' + esc(dettaglio) + '</code></details></div>'
+                    '<div class="crv-errore"><strong>' + esc(t('v_impossibile')) + '</strong>'
+                    + '<span>' + esc(t('v_apri_diretto', pagina)) + '</span>'
+                    + '<a class="crv-link" href="' + esc(opz.url + '#page=' + pagina) + '" target="_blank" rel="noopener">' + esc(t('v_apri_pdf')) + '</a>'
+                    + '<details class="crv-dettaglio"><summary>' + esc(t('v_dettaglio')) + '</summary><code>' + esc(dettaglio) + '</code></details></div>'
                 );
             });
     }
@@ -366,7 +374,7 @@
             const canvas = document.createElement('canvas');
             canvas.width  = Math.floor(vp.width);
             canvas.height = Math.floor(vp.height);
-            canvas.setAttribute('aria-label', 'Pagina ' + n);
+            canvas.setAttribute('aria-label', t('v_pagina', n));
 
             voce.task = page.render({ canvasContext: canvas.getContext('2d', { alpha: false }), viewport: vp });
             return voce.task.promise.then(() => {
@@ -433,7 +441,7 @@
 
     function aggiornaZoomUi() {
         el.zoomVal.textContent = Math.round(st.scala * 100) + '%';
-        el.root.querySelector('[data-crv="adatta"]').title = st.modo === 'larghezza' ? 'Adattato alla larghezza' : 'Adatta alla larghezza';
+        el.root.querySelector('[data-crv="adatta"]').title = st.modo === 'larghezza' ? t('v_adattato') : t('v_adatta');
     }
 
     function impostaZoom(valore) {

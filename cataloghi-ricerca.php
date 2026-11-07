@@ -2,14 +2,16 @@
 /**
  * Plugin Name: Cataloghi Ricerca Finimpianti
  * Description: Ricerca motori e componenti nei cataloghi PDF
- * Version: 3.2
+ * Version: 3.3
  * Author: Finimpianti
+ * Text Domain: cataloghi-ricerca
+ * Domain Path: /languages
  * Update URI: false
  */
 
 defined('ABSPATH') || exit;
 
-define('CR_VERSION',          '3.2');
+define('CR_VERSION',          '3.3');
 define('CR_DB_VERSION',       '2');
 define('CR_FILE',             __FILE__);
 define('CR_TABLE_MOTORI',     'cataloghi_motori');
@@ -28,6 +30,7 @@ define('CR_IMPORT_BLOCCO',    500);                     // righe per singola INS
 require_once __DIR__ . '/includes/helpers.php';
 require_once __DIR__ . '/includes/database.php';
 require_once __DIR__ . '/includes/pdf.php';
+require_once __DIR__ . '/includes/lingue.php';
 require_once __DIR__ . '/includes/import.php';
 require_once __DIR__ . '/includes/diagnostica.php';
 require_once __DIR__ . '/includes/admin.php';

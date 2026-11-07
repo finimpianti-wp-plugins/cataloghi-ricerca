@@ -30,10 +30,13 @@ function cr_shortcode() {
     wp_localize_script('cr-viewer', 'CR', [
         'rest_url' => esc_url_raw(rest_url('cataloghi/v1')),
         'pdfjs'    => esc_url_raw($url . 'pdfjs/'),
+        'lang'     => cr_multilingua() ? cr_lingua_corrente() : '',
+        't'        => cr_testi_js(),
     ]);
 
     // Legge i cataloghi dal disco (fonte unica di verità)
-    $cataloghi = cr_get_cataloghi_da_disco();
+    $esclusi   = cr_pdf_esclusi(); // altre lingue dello stesso catalogo
+    $cataloghi = array_values(array_filter(cr_get_cataloghi_da_disco(), fn($c) => !in_array($c['file'], $esclusi, true)));
     $carosello = cr_get_carosello();
     $stile     = cr_stile();
     $mostra    = [
@@ -48,7 +51,7 @@ function cr_shortcode() {
 
         <!-- NAVIGAZIONE RAPIDA -->
         <?php if ($mostra['nav'] && ($mostra['componenti'] || $mostra['motori'] || $mostra['fascia'])): ?>
-            <nav class="cr-nav" aria-label="Sezioni della ricerca cataloghi">
+            <nav class="cr-nav" aria-label="<?= esc_attr__('Sezioni della ricerca cataloghi', 'cataloghi-ricerca') ?>">
                 <?php if ($mostra['componenti']): ?><a class="cr-nav-btn" href="#cr-componenti"><?= esc_html(cr_testo('testo_nav_comp')) ?></a><?php endif; ?>
                 <?php if ($mostra['motori']): ?><a class="cr-nav-btn" href="#cr-motori"><?= esc_html(cr_testo('testo_nav_mot')) ?></a><?php endif; ?>
                 <?php if ($mostra['fascia']): ?><a class="cr-nav-btn" href="#cr-cataloghi"><?= esc_html(cr_testo('testo_nav_cat')) ?></a><?php endif; ?>
@@ -82,7 +85,7 @@ function cr_shortcode() {
             <div class="cr-searchbox">
                 <?= cr_icona('lente') ?>
                 <input type="search" id="cr-input-codice" placeholder="<?= esc_attr(cr_testo('segnaposto_codice')) ?>"
-                       autocomplete="off" spellcheck="false" aria-label="Codice componente FIN o OEM"
+                       autocomplete="off" spellcheck="false" aria-label="<?= esc_attr__('Codice componente FIN o OEM', 'cataloghi-ricerca') ?>"
                        aria-describedby="cr-input-hint" />
             </div>
             <p class="cr-input-hint" id="cr-input-hint"><?= esc_html(cr_testo('aiuto_codice')) ?></p>
@@ -105,12 +108,12 @@ function cr_shortcode() {
 
             <div class="cr-filtri-pannello" id="cr-filtri-pannello">
                 <div class="cr-filtri-inner">
-                    <div class="cr-filtri-chips" id="cr-filtri-chips" role="group" aria-label="Costruttori">
-                        <p class="cr-loading">Caricamento costruttori...</p>
+                    <div class="cr-filtri-chips" id="cr-filtri-chips" role="group" aria-label="<?= esc_attr__('Costruttori', 'cataloghi-ricerca') ?>">
+                        <p class="cr-loading"><?= esc_html__('Caricamento costruttori...', 'cataloghi-ricerca') ?></p>
                     </div>
                     <div class="cr-filtri-azioni">
-                        <button type="button" class="cr-link-btn" id="cr-filtri-azzera" disabled>Azzera filtri</button>
-                        <button type="button" class="cr-link-btn" id="cr-filtri-chiudi">Chiudi</button>
+                        <button type="button" class="cr-link-btn" id="cr-filtri-azzera" disabled><?= esc_html__('Azzera filtri', 'cataloghi-ricerca') ?></button>
+                        <button type="button" class="cr-link-btn" id="cr-filtri-chiudi"><?= esc_html__('Chiudi', 'cataloghi-ricerca') ?></button>
                     </div>
                 </div>
             </div>
@@ -118,7 +121,7 @@ function cr_shortcode() {
             <div class="cr-searchbox">
                 <?= cr_icona('lente') ?>
                 <input type="search" id="cr-input-motore" placeholder="<?= esc_attr(cr_testo('segnaposto_motore')) ?>"
-                       autocomplete="off" spellcheck="false" aria-label="Nome del motore"
+                       autocomplete="off" spellcheck="false" aria-label="<?= esc_attr__('Nome del motore', 'cataloghi-ricerca') ?>"
                        aria-describedby="cr-motore-hint" />
             </div>
             <div class="cr-filtri-attivi" id="cr-filtri-attivi"></div>

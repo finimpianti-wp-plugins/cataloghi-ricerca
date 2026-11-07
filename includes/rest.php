@@ -8,6 +8,11 @@ defined('ABSPATH') || exit;
 add_action('rest_api_init', 'cr_registra_endpoint');
 
 function cr_registra_endpoint() {
+    // Messaggi nella lingua della pagina che ha fatto la richiesta (parametro "lang")
+    add_filter('rest_pre_dispatch', function ($risultato, $server, $request) {
+        if (strpos((string) $request->get_route(), '/cataloghi/v1/') === 0) cr_rest_lingua();
+        return $risultato;
+    }, 10, 3);
 
     register_rest_route('cataloghi/v1', '/costruttori', [
         'methods'             => 'GET',
@@ -48,8 +53,10 @@ function cr_registra_endpoint() {
 }
 
 function cr_rest_get_cataloghi() {
-    $out = [];
+    $out     = [];
+    $esclusi = cr_pdf_esclusi();
     foreach (cr_get_cataloghi_da_disco() as $c) {
+        if (in_array($c['file'], $esclusi, true)) continue;
         $out[] = ['file' => $c['file'], 'label' => $c['label'], 'url' => $c['url']];
     }
     return rest_ensure_response($out);
@@ -78,14 +85,16 @@ function cr_arricchisci_risultati($rows) {
 }
 
 function cr_risposta_errore_query() {
-    return new WP_Error('query_timeout', 'Ricerca interrotta: il server ha impiegato troppo tempo. Riprova.', ['status' => 504]);
+    return new WP_Error('query_timeout', __('Ricerca interrotta: il server ha impiegato troppo tempo. Riprova.', 'cataloghi-ricerca'), ['status' => 504]);
 }
 
 function cr_get_costruttori() {
     global $wpdb;
     $table = cr_tabella('motori');
+    [$cond_lingua, $args_lingua] = cr_condizione_lingua('motori');
     $rows  = $wpdb->get_col($wpdb->prepare(
-        "SELECT DISTINCT costruttore FROM $table WHERE lotto = %d ORDER BY costruttore ASC", cr_lotto_attivo('motori')
+        "SELECT DISTINCT costruttore FROM $table WHERE lotto = %d" . ($cond_lingua ? " AND $cond_lingua" : '') . ' ORDER BY costruttore ASC',
+        array_merge([cr_lotto_attivo('motori')], $args_lingua)
     ));
     return rest_ensure_response($rows);
 }
@@ -94,7 +103,7 @@ function cr_get_costruttori() {
 function cr_get_motori(WP_REST_Request $request) {
     $costruttore = $request->get_param('costruttore');
     if (empty($costruttore)) {
-        return new WP_Error('param_missing', 'Parametro costruttore mancante.', ['status' => 400]);
+        return new WP_Error('param_missing', __('Parametro costruttore mancante.', 'cataloghi-ricerca'), ['status' => 400]);
     }
     $request->set_param('costruttori', [$costruttore]);
     $request->set_param('q', '');
@@ -126,10 +135,10 @@ function cr_cerca_motori(WP_REST_Request $request) {
     $limit       = 10;
 
     if ($q === '' && !$costruttori) {
-        return new WP_Error('param_missing', 'Inserisci il nome di un motore o seleziona almeno un costruttore.', ['status' => 400]);
+        return new WP_Error('param_missing', __('Inserisci il nome di un motore o seleziona almeno un costruttore.', 'cataloghi-ricerca'), ['status' => 400]);
     }
     if ($q !== '' && mb_strlen($q) < 3) {
-        return new WP_Error('param_too_short', 'Inserisci almeno 3 caratteri.', ['status' => 400]);
+        return new WP_Error('param_too_short', __('Inserisci almeno 3 caratteri.', 'cataloghi-ricerca'), ['status' => 400]);
     }
 
     $where = ['lotto = %d'];
@@ -148,6 +157,11 @@ function cr_cerca_motori(WP_REST_Request $request) {
     if ($costruttori) {
         $where[] = 'costruttore IN (' . implode(',', array_fill(0, count($costruttori), '%s')) . ')';
         $args    = array_merge($args, $costruttori);
+    }
+    [$cond_lingua, $args_lingua] = cr_condizione_lingua('motori');
+    if ($cond_lingua) {
+        $where[] = $cond_lingua;
+        $args    = array_merge($args, $args_lingua);
     }
     $where_sql = implode(' AND ', $where);
 
@@ -192,7 +206,7 @@ function cr_get_componenti(WP_REST_Request $request) {
     $limit  = 10;
 
     if ($q === '') {
-        return new WP_Error('param_missing', 'Parametro q mancante.', ['status' => 400]);
+        return new WP_Error('param_missing', __('Parametro q mancante.', 'cataloghi-ricerca'), ['status' => 400]);
     }
 
     if (!in_array($tipo, ['fin', 'oem'], true)) {
@@ -201,10 +215,10 @@ function cr_get_componenti(WP_REST_Request $request) {
 
     if ($tipo === 'fin') {
         if (!preg_match('/^FIN.*\d{3}/', $qn)) {
-            return new WP_Error('invalid_code', 'Il codice FIN deve iniziare con FIN seguito da almeno 3 cifre.', ['status' => 400]);
+            return new WP_Error('invalid_code', __('Il codice FIN deve iniziare con FIN seguito da almeno 3 cifre.', 'cataloghi-ricerca'), ['status' => 400]);
         }
     } elseif (strlen($qn) < 4) {
-        return new WP_Error('invalid_code', 'Il codice deve avere almeno 4 caratteri (lettere o cifre).', ['status' => 400]);
+        return new WP_Error('invalid_code', __('Il codice deve avere almeno 4 caratteri (lettere o cifre).', 'cataloghi-ricerca'), ['status' => 400]);
     }
 
     $like  = '%' . $wpdb->esc_like($q) . '%';
@@ -221,6 +235,11 @@ function cr_get_componenti(WP_REST_Request $request) {
     }
     array_unshift($args, cr_lotto_attivo('componenti'));
     $where_sql = "lotto = %d AND $cond";
+    [$cond_lingua, $args_lingua] = cr_condizione_lingua('componenti');
+    if ($cond_lingua) {
+        $where_sql .= " AND $cond_lingua";
+        $args       = array_merge($args, $args_lingua);
+    }
 
     cr_imposta_timeout_query();
 

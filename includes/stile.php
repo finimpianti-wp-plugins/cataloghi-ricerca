@@ -145,18 +145,18 @@ function cr_stile_schema() {
         // --- Testi e sezioni ----------------------------------------------------
         'mostra_componenti'  => ['tipo' => 'si_no', 'default' => 1, 'etichetta' => 'Mostra la ricerca per codice componente', 'ricarica' => true],
         'mostra_motori'      => ['tipo' => 'si_no', 'default' => 1, 'etichetta' => 'Mostra la ricerca per tipologia di motore', 'ricarica' => true],
-        'testo_nav_comp'     => ['tipo' => 'testo', 'default' => 'Ricerca per codice componente', 'etichetta' => 'Pulsante in alto: ricerca componenti'],
-        'testo_nav_mot'      => ['tipo' => 'testo', 'default' => 'Ricerca per tipologia di motore', 'etichetta' => 'Pulsante in alto: ricerca motori'],
-        'testo_nav_cat'      => ['tipo' => 'testo', 'default' => 'Consulta i cataloghi interi', 'etichetta' => 'Pulsante in alto: cataloghi'],
-        'titolo_comp'        => ['tipo' => 'testo', 'default' => 'Ricerca per codice componente', 'etichetta' => 'Titolo della ricerca componenti'],
-        'segnaposto_codice'  => ['tipo' => 'testo', 'default' => 'es. FIN147PC00 oppure 6500.095', 'etichetta' => 'Testo nel campo codice'],
-        'aiuto_codice'       => ['tipo' => 'testo', 'default' => 'Inserisci un codice FIN o OEM: il tipo viene riconosciuto in automatico', 'etichetta' => 'Suggerimento sotto il campo codice'],
-        'titolo_motori'      => ['tipo' => 'testo', 'default' => 'Ricerca per tipologia di motore', 'etichetta' => 'Titolo della ricerca motori'],
-        'testo_filtri'       => ['tipo' => 'testo', 'default' => 'Filtra per costruttore', 'etichetta' => 'Pulsante dei filtri'],
-        'segnaposto_motore'  => ['tipo' => 'testo', 'default' => 'Inserisci il nome del motore', 'etichetta' => 'Testo nel campo motore'],
-        'aiuto_motore'       => ['tipo' => 'testo', 'default' => 'Scrivi almeno 3 caratteri o seleziona uno o più costruttori', 'etichetta' => 'Suggerimento sotto il campo motore'],
-        'titolo_cataloghi'   => ['tipo' => 'testo', 'default' => 'Consulta i cataloghi interi', 'etichetta' => 'Titolo della fascia cataloghi'],
-        'testo_nessun_cat'   => ['tipo' => 'testo', 'default' => 'Nessun catalogo disponibile al momento.', 'etichetta' => 'Messaggio se non ci sono cataloghi'],
+        'testo_nav_comp'     => ['tipo' => 'testo', 'default' => __('Ricerca per codice componente', 'cataloghi-ricerca'), 'etichetta' => 'Pulsante in alto: ricerca componenti'],
+        'testo_nav_mot'      => ['tipo' => 'testo', 'default' => __('Ricerca per tipologia di motore', 'cataloghi-ricerca'), 'etichetta' => 'Pulsante in alto: ricerca motori'],
+        'testo_nav_cat'      => ['tipo' => 'testo', 'default' => __('Consulta i cataloghi interi', 'cataloghi-ricerca'), 'etichetta' => 'Pulsante in alto: cataloghi'],
+        'titolo_comp'        => ['tipo' => 'testo', 'default' => __('Ricerca per codice componente', 'cataloghi-ricerca'), 'etichetta' => 'Titolo della ricerca componenti'],
+        'segnaposto_codice'  => ['tipo' => 'testo', 'default' => __('es. FIN147PC00 oppure 6500.095', 'cataloghi-ricerca'), 'etichetta' => 'Testo nel campo codice'],
+        'aiuto_codice'       => ['tipo' => 'testo', 'default' => __('Inserisci un codice FIN o OEM: il tipo viene riconosciuto in automatico', 'cataloghi-ricerca'), 'etichetta' => 'Suggerimento sotto il campo codice'],
+        'titolo_motori'      => ['tipo' => 'testo', 'default' => __('Ricerca per tipologia di motore', 'cataloghi-ricerca'), 'etichetta' => 'Titolo della ricerca motori'],
+        'testo_filtri'       => ['tipo' => 'testo', 'default' => __('Filtra per costruttore', 'cataloghi-ricerca'), 'etichetta' => 'Pulsante dei filtri'],
+        'segnaposto_motore'  => ['tipo' => 'testo', 'default' => __('Inserisci il nome del motore', 'cataloghi-ricerca'), 'etichetta' => 'Testo nel campo motore'],
+        'aiuto_motore'       => ['tipo' => 'testo', 'default' => __('Scrivi almeno 3 caratteri o seleziona uno o più costruttori', 'cataloghi-ricerca'), 'etichetta' => 'Suggerimento sotto il campo motore'],
+        'titolo_cataloghi'   => ['tipo' => 'testo', 'default' => __('Consulta i cataloghi interi', 'cataloghi-ricerca'), 'etichetta' => 'Titolo della fascia cataloghi'],
+        'testo_nessun_cat'   => ['tipo' => 'testo', 'default' => __('Nessun catalogo disponibile al momento.', 'cataloghi-ricerca'), 'etichetta' => 'Messaggio se non ci sono cataloghi'],
     ];
 
     // Gruppo di appartenenza (in ordine di dichiarazione)
@@ -248,6 +248,12 @@ function cr_stile_sanifica($in) {
                     break;
                 case 'testo':
                     $out[$chiave] = $vuoto ? '' : sanitize_text_field((string) $v);
+                    // Versioni nelle altre lingue (con "Elementor Page Translator"): chiave__codice
+                    foreach (array_keys(cr_lingue()) as $lingua) {
+                        if ($lingua === cr_lingua_predefinita()) continue;
+                        $vl = trim((string) ($in[$chiave . '__' . $lingua] ?? ''));
+                        if ($vl !== '') $out[$chiave . '__' . $lingua] = sanitize_text_field($vl);
+                    }
                     break;
             }
         }
@@ -275,9 +281,18 @@ function cr_stile() {
     return $cache = cr_stile_salvato();
 }
 
-/** Testo da mostrare: quello impostato o, se lasciato vuoto, quello predefinito. */
+/**
+ * Testo da mostrare: quello impostato o, se lasciato vuoto, quello predefinito.
+ * Nelle altre lingue: il testo scritto per quella lingua, altrimenti quello
+ * predefinito tradotto (Loco Translate), altrimenti l'italiano predefinito.
+ */
 function cr_testo($chiave) {
-    $s = cr_stile();
+    $s      = cr_stile();
+    $lingua = cr_lingua_corrente();
+    if ($lingua !== cr_lingua_predefinita()) {
+        $v = trim((string) ($s[$chiave . '__' . $lingua] ?? ''));
+        return $v !== '' ? $v : cr_stile_schema()[$chiave]['default'];
+    }
     $v = trim((string) ($s[$chiave] ?? ''));
     return $v !== '' ? $v : cr_stile_schema()[$chiave]['default'];
 }

@@ -226,6 +226,13 @@ function cr_campo_stile($k, $s, $valori) {
 
             <?php elseif ($s['tipo'] === 'testo'): ?>
                 <input type="text" class="widefat" id="<?= esc_attr($id) ?>" name="<?= esc_attr($nome) ?>" value="<?= esc_attr($v) ?>" placeholder="<?= esc_attr($s['default']) ?>" data-ricarica="1">
+                <?php foreach (cr_lingue() as $lingua => $nome_lingua): if ($lingua === cr_lingua_predefinita()) continue; ?>
+                    <label class="cr-stile-lingua">
+                        <span><?= esc_html($nome_lingua) ?></span>
+                        <input type="text" class="widefat" name="cr_stile[<?= esc_attr($k . '__' . $lingua) ?>]" value="<?= esc_attr($valori[$k . '__' . $lingua] ?? '') ?>"
+                               placeholder="Vuoto = testo predefinito tradotto (Loco Translate)" aria-label="<?= esc_attr($s['etichetta'] . ' — ' . $nome_lingua) ?>">
+                    </label>
+                <?php endforeach; ?>
             <?php endif; ?>
         <?php endif; ?>
 

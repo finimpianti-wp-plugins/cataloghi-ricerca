@@ -211,3 +211,7 @@
 }
 
 @media (max-width: 1100px) { .cr-stile-anteprima { position: static; } }
+
+/* Versioni dei testi nelle altre lingue (con Elementor Page Translator) */
+.cr-stile-lingua { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.cr-stile-lingua > span { min-width: 70px; font-size: 12px; color: #50575e; }

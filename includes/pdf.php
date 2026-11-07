@@ -197,6 +197,14 @@ function cr_gestisci_pdf_upload() {
     if ($esistente && $esistente !== $nome) cr_rimuovi_label($esistente);
     cr_salva_label($nome, $label);
 
+    // Lingua (con "Elementor Page Translator"): quella scelta, altrimenti quella del file sostituito
+    if (isset($_POST['cr_pdf_lingua'])) {
+        $lingua = cr_lingua_valida($_POST['cr_pdf_lingua']);
+        if ($lingua === '' && $esistente) $lingua = cr_lingua_pdf($esistente);
+        if ($esistente && $esistente !== $nome) cr_rimuovi_lingua_pdf($esistente);
+        cr_salva_lingua_pdf($nome, $lingua);
+    }
+
     return ['success' => true, 'azione' => $esistente ? 'sovrascritto' : 'upload', 'file' => $nome];
 }
 
@@ -222,6 +230,7 @@ function cr_gestisci_pdf_elimina() {
     if (!@unlink(CR_PDF_DIR . $nome)) return ['error' => 'Impossibile eliminare il file. Controlla i permessi.'];
     cr_elenco_pdf(true);
     cr_rimuovi_label($nome);
+    cr_rimuovi_lingua_pdf($nome);
 
     return ['success' => true, 'azione' => 'elimina', 'file' => $nome];
 }
@@ -243,13 +252,16 @@ function cr_gestisci_pdf_rinomina() {
         return ['error' => 'Esiste già un file chiamato "' . $nuovo . '".'];
     }
 
-    $label = cr_label_pdf($nome);
+    $label  = cr_label_pdf($nome);
+    $lingua = cr_lingua_pdf($nome);
     if (!@rename(CR_PDF_DIR . $nome, CR_PDF_DIR . $nuovo)) {
         return ['error' => 'Impossibile rinominare il file. Controlla i permessi.'];
     }
     cr_elenco_pdf(true);
     cr_rimuovi_label($nome);
     cr_salva_label($nuovo, $label);
+    cr_rimuovi_lingua_pdf($nome);
+    cr_salva_lingua_pdf($nuovo, $lingua);
 
     return ['success' => true, 'azione' => 'rinomina', 'file' => $nome, 'nuovo' => $nuovo];
 }
@@ -271,4 +283,15 @@ function cr_gestisci_pdf_scansiona() {
     update_option(CR_OPTION_LABELS, $labels);
 
     return ['success' => true, 'azione' => 'scansiona', 'totale' => count($files), 'nuovi' => $nuovi];
+}
+
+/** Lingua del PDF scelta nel pannello. */
+function cr_gestisci_pdf_lingua() {
+    if ($e = cr_verifica_permessi_pdf()) return ['error' => $e];
+
+    $nome = cr_trova_pdf_su_disco($_POST['cr_pdf_filename'] ?? '');
+    if (!$nome) return ['error' => 'File non trovato nella cartella dei cataloghi.'];
+
+    cr_salva_lingua_pdf($nome, cr_lingua_valida($_POST['cr_pdf_lingua'] ?? ''));
+    return ['success' => true, 'azione' => 'lingua', 'file' => $nome];
 }

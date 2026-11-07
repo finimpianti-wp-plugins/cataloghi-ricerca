@@ -57,6 +57,7 @@ function cr_esegui_azione_admin() {
             case 'elimina':   return cr_gestisci_pdf_elimina();
             case 'rinomina':  return cr_gestisci_pdf_rinomina();
             case 'scansiona': return cr_gestisci_pdf_scansiona();
+            case 'lingua':    return cr_gestisci_pdf_lingua();
         }
     }
     if (isset($_POST['cr_carosello_action'])) return cr_gestisci_carosello();
@@ -69,6 +70,7 @@ function cr_messaggio_esito($ris) {
         case 'upload':      return "PDF {$f('file')} caricato.";
         case 'sovrascritto':return "PDF {$f('file')} sostituito con la nuova versione.";
         case 'label':       return "Etichetta aggiornata per {$f('file')}.";
+        case 'lingua':      return "Lingua aggiornata per {$f('file')}.";
         case 'elimina':     return "PDF {$f('file')} eliminato.";
         case 'rinomina':    return "{$f('file')} rinominato in {$f('nuovo')}.";
         case 'scansiona':   return 'Scansione completata: <strong>' . (int) $ris['totale'] . '</strong> PDF trovati, <strong>' . (int) $ris['nuovi'] . '</strong> nuovi.';
@@ -233,6 +235,18 @@ function cr_pagina_admin() {
                             <input type="text" id="cr-pdf-label" name="cr_pdf_label" placeholder="Es. Catalogo 1 — LOMBARDINI">
                             <span class="cr-field-hint">Il nome mostrato agli utenti. Se lo lasci vuoto viene usato il nome del file (o l'etichetta attuale, se sostituisci un catalogo).</span>
                         </div>
+                        <?php if (cr_lingue()): ?>
+                            <div class="cr-form-field">
+                                <label for="cr-pdf-lingua">Lingua del catalogo</label>
+                                <select id="cr-pdf-lingua" name="cr_pdf_lingua">
+                                    <option value="">— Non indicata —</option>
+                                    <?php foreach (cr_lingue() as $codice => $nome_lingua): ?>
+                                        <option value="<?= esc_attr($codice) ?>"><?= esc_html($nome_lingua) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <span class="cr-field-hint">Per le versioni in più lingue dello stesso catalogo usa la <strong>stessa etichetta</strong>: sulle pagine di ogni lingua si mostra la versione in quella lingua, altrimenti l'inglese, altrimenti l'italiano.</span>
+                            </div>
+                        <?php endif; ?>
                         <div class="cr-file-area" id="cr-drop-pdf">
                             <span class="dashicons dashicons-pdf cr-upload-icon"></span>
                             <p>Trascina qui il PDF oppure</p>
@@ -301,6 +315,7 @@ function cr_pagina_admin() {
                                 <tr>
                                     <th>Nome file</th>
                                     <th>Etichetta frontend</th>
+                                    <?php if (cr_lingue()): ?><th>Lingua</th><?php endif; ?>
                                     <th>Usato da</th>
                                     <th>Dimensione</th>
                                     <th>Modificato</th>
@@ -335,6 +350,22 @@ function cr_pagina_admin() {
                                                 </div>
                                             </form>
                                         </td>
+                                        <?php if (cr_lingue()): $lingua_pdf = cr_lingua_pdf($cat['file']); ?>
+                                            <td class="cr-cell-lingua">
+                                                <form method="post" class="cr-form-lingua">
+                                                    <?php wp_nonce_field('cr_pdf_nonce'); ?>
+                                                    <input type="hidden" name="cr_pdf_action" value="lingua">
+                                                    <input type="hidden" name="cr_pdf_filename" value="<?= esc_attr($cat['file']) ?>">
+                                                    <select name="cr_pdf_lingua" aria-label="<?= esc_attr('Lingua di ' . $cat['file']) ?>" onchange="this.form.submit()">
+                                                        <option value="">—</option>
+                                                        <?php foreach (cr_lingue() as $codice => $nome_lingua): ?>
+                                                            <option value="<?= esc_attr($codice) ?>" <?php selected($lingua_pdf, $codice); ?>><?= esc_html($nome_lingua) ?></option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                    <noscript><button type="submit" class="cr-btn-small">OK</button></noscript>
+                                                </form>
+                                            </td>
+                                        <?php endif; ?>
                                         <td class="cr-cell-uso"><?= $uso ? esc_html(cr_descrivi_righe($uso)) : '<span class="cr-non-usato">non usato</span>' ?></td>
                                         <td class="cr-cell-size"><?= cr_format_bytes($cat['size']) ?></td>
                                         <td class="cr-cell-date"><?= cr_format_data($cat['modified']) ?></td>

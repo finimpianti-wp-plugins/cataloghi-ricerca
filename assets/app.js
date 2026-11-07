@@ -59,12 +59,20 @@ function crNomeCatalogo(r) {
     return r.catalogo_label || crNomePdf(r.file_origine);
 }
 
+// Testi dell'interfaccia (traducibili, passati da PHP in CR.t); %s = valori in ordine
+function crT(chiave) {
+    const args = Array.prototype.slice.call(arguments, 1);
+    let i = 0;
+    const testo = (window.CR && CR.t && CR.t[chiave]) || chiave;
+    return testo.replace(/%s/g, () => (i < args.length ? args[i++] : '')).replace(/%%/g, '%');
+}
+
 function crMessaggioErrore(err) {
     if (err && err.name === 'AbortError') {
-        return '⏱ Ricerca interrotta: il server ha impiegato troppo tempo. Riprova con un termine più specifico.';
+        return '⏱ ' + crEsc(crT('timeout'));
     }
     if (err && err.message) return '⚠ ' + crEsc(err.message);
-    return '⚠ Si è verificato un errore. Riprova.';
+    return '⚠ ' + crEsc(crT('errore'));
 }
 
 function crEsc(str) {
@@ -111,7 +119,9 @@ function crEvidenzia(testo, q) {
 // "?rest_route=...", quindi i parametri vanno accodati con "&".
 // params: oggetto oppure array di coppie [chiave, valore] (per parametri ripetuti)
 function crUrl(path, params) {
-    const qs = new URLSearchParams(params || {}).toString();
+    const coppie = Array.isArray(params) ? params.slice() : Object.entries(params || {});
+    if (CR.lang) coppie.push(['lang', CR.lang]); // messaggi e cataloghi nella lingua della pagina
+    const qs = new URLSearchParams(coppie).toString();
     const url = CR.rest_url + path;
     if (!qs) return url;
     return url + (url.indexOf('?') === -1 ? '?' : '&') + qs;
@@ -125,7 +135,7 @@ function crFetchJson(url) {
     return fetch(url, { signal: controller.signal })
         .then(r => r.json().then(
             data => r.ok ? data : Promise.reject(data),
-            ()   => Promise.reject(new Error('Risposta del server non valida.'))
+            ()   => Promise.reject(new Error(crT('risposta')))
         ))
         .finally(() => clearTimeout(timeout));
 }
@@ -138,11 +148,12 @@ function crIcona(nome) {
 }
 
 function crSkeleton() {
-    return '<div class="cr-skeleton" aria-label="Caricamento"><span></span><span></span><span></span></div>';
+    return '<div class="cr-skeleton" aria-label="' + crEsc(crT('caricamento')) + '"><span></span><span></span><span></span></div>';
 }
 
-function crPlurale(n, singolare, plurale) {
-    return n + ' ' + (n === 1 ? singolare : plurale);
+// chiave: prefisso dei testi "_1" (singolare) e "_n" (plurale)
+function crPlurale(n, chiave) {
+    return crT(chiave + (n === 1 ? '_1' : '_n'), n);
 }
 
 // "4.0" → "4"
@@ -152,9 +163,9 @@ function crNumero(v) {
 
 function crTagTecnici(r) {
     const tag = [];
-    if (r.nr_cilindri) tag.push(crEsc(crNumero(r.nr_cilindri)) + ' cil.');
+    if (r.nr_cilindri) tag.push(crEsc(crT('cilindri', crNumero(r.nr_cilindri))));
     if (r.alesaggio)   tag.push('Ø ' + crEsc(r.alesaggio) + ' mm');
-    if (r.corsa)       tag.push('Corsa ' + crEsc(r.corsa) + ' mm');
+    if (r.corsa)       tag.push(crEsc(crT('corsa', r.corsa)));
     return tag.length ? '<div class="cr-ris-tag">' + tag.map(t => '<span>' + t + '</span>').join('') + '</div>' : '';
 }
 
@@ -162,7 +173,7 @@ function crColonnaPdf(r) {
     if (!r.pdf_disponibile) {
         return `
         <div class="cr-ris-pdf">
-            <span class="cr-ris-catalogo">${crIcona('pdf')}<span>Catalogo non disponibile</span></span>
+            <span class="cr-ris-catalogo">${crIcona('pdf')}<span>${crEsc(crT('non_disponibile'))}</span></span>
             ${r.file_origine ? '<span class="cr-ris-pagina">' + crEsc(crNomePdf(r.file_origine)) + '</span>' : ''}
         </div>
         <span class="cr-ris-freccia" aria-hidden="true"></span>`;
@@ -171,7 +182,7 @@ function crColonnaPdf(r) {
     return `
         <div class="cr-ris-pdf">
             ${nome ? '<span class="cr-ris-catalogo">' + crIcona('pdf') + '<span>' + crEsc(nome) + '</span></span>' : ''}
-            <span class="cr-ris-pagina">${r.pagina_pdf > 0 ? 'pag. ' + crEsc(r.pagina_pdf) : 'pagina non indicata'}</span>
+            <span class="cr-ris-pagina">${crEsc(r.pagina_pdf > 0 ? crT('pagina_n', r.pagina_pdf) : crT('pagina_assente'))}</span>
         </div>
         <span class="cr-ris-freccia" aria-hidden="true">→</span>`;
 }
@@ -206,10 +217,10 @@ function crBottoneAltri(el, id, rimanenti, onClick) {
     btn.type        = 'button';
     btn.id          = id;
     btn.className   = 'cr-btn-carica-altri';
-    btn.textContent = `Carica altri (${rimanenti} rimanenti)`;
+    btn.textContent = crT('carica_altri', rimanenti);
     btn.onclick = () => {
         btn.disabled    = true;
-        btn.textContent = 'Caricamento...';
+        btn.textContent = crT('caricamento_puntini');
         onClick();
     };
     el.appendChild(btn);
@@ -365,7 +376,7 @@ function crFiltriCambiati() {
 
     // Riepilogo filtri attivi
     document.getElementById('cr-filtri-attivi').innerHTML = Array.from(crCostruttoriSel).map(c =>
-        `<button type="button" class="cr-tag-attivo" data-costruttore="${crEsc(c)}" aria-label="Rimuovi filtro ${crEsc(c)}">${crEsc(c)}<span aria-hidden="true">×</span></button>`
+        `<button type="button" class="cr-tag-attivo" data-costruttore="${crEsc(c)}" aria-label="${crEsc(crT('rimuovi_filtro', c))}">${crEsc(c)}<span aria-hidden="true">×</span></button>`
     ).join('');
 
     clearTimeout(crTimerMotore);
@@ -379,14 +390,14 @@ function crCaricaCostruttori() {
     crFetchJson(crUrl('/costruttori'))
         .then(data => {
             if (!Array.isArray(data)) throw new Error();
-            if (!data.length) { el.innerHTML = '<p class="cr-loading">Nessun costruttore trovato.</p>'; return; }
+            if (!data.length) { el.innerHTML = '<p class="cr-loading">' + crEsc(crT('nessun_costruttore')) + '</p>'; return; }
             el.innerHTML = data.map(c =>
                 `<button type="button" class="cr-chip" data-costruttore="${crEsc(c)}" aria-pressed="false">${crEsc(c)}</button>`
             ).join('');
             crFiltriCambiatiSoloStato();
         })
         .catch(() => {
-            el.innerHTML = '<p class="cr-errore">Impossibile caricare i costruttori.</p>';
+            el.innerHTML = '<p class="cr-errore">' + crEsc(crT('errore_costruttori')) + '</p>';
         });
 }
 
@@ -417,7 +428,7 @@ function crAggiornaMotori() {
     if (q && q.length < 3) {
         crGenMotori++;
         box.classList.add('cr-input-error');
-        crImpostaHint('cr-motore-hint', '⚠ Inserisci almeno 3 caratteri', 'error');
+        crImpostaHint('cr-motore-hint', '⚠ ' + crT('min_3'), 'error');
         return;
     }
 
@@ -449,11 +460,14 @@ function crFetchMotori(q, costruttori, offset, append, gen) {
 
             if (!append) {
                 if (!data.total) {
-                    risultati.innerHTML = `<p class="cr-vuoto">Nessun motore trovato${q ? ' per <strong>' + crEsc(q) + '</strong>' : ''}${costruttori.length ? ' tra i costruttori selezionati' : ''}.</p>`;
+                    const qHtml = '<strong>' + crEsc(q) + '</strong>';
+                    const vuoto = q ? (costruttori.length ? crT('nessun_motore_qc', qHtml) : crT('nessun_motore_q', qHtml))
+                                    : (costruttori.length ? crT('nessun_motore_c') : crT('nessun_motore'));
+                    risultati.innerHTML = `<p class="cr-vuoto">${vuoto}</p>`;
                     return;
                 }
                 risultati.innerHTML =
-                    `<p class="cr-count"><strong>${crPlurale(data.total, 'motore', 'motori')}</strong>${q ? ' per “' + crEsc(q) + '”' : ''}${costruttori.length ? ' · ' + crPlurale(costruttori.length, 'costruttore', 'costruttori') : ''}</p>`
+                    `<p class="cr-count"><strong>${crEsc(crPlurale(data.total, 'motori'))}</strong>${q ? ' ' + crEsc(crT('per_q', q)) : ''}${costruttori.length ? ' · ' + crEsc(crPlurale(costruttori.length, 'costruttori')) : ''}</p>`
                     + '<div class="cr-lista"></div>';
             }
 
@@ -522,19 +536,19 @@ function crValidaECerca(q) {
         crGenComponenti++;
         el.innerHTML = '';
         box.classList.remove('cr-input-error');
-        crImpostaHint('cr-input-hint', 'Codice FIN: continua a digitare (FIN + almeno 3 cifre, es. FIN147PC00)');
+        crImpostaHint('cr-input-hint', crT('fin_incompleto'));
         return;
     }
     if (!isFin && qn.length < 4) {
         crGenComponenti++;
         el.innerHTML = '';
         box.classList.add('cr-input-error');
-        crImpostaHint('cr-input-hint', '⚠ Inserisci almeno 4 lettere o cifre', 'error');
+        crImpostaHint('cr-input-hint', '⚠ ' + crT('min_4'), 'error');
         return;
     }
 
     box.classList.remove('cr-input-error');
-    crImpostaHint('cr-input-hint', isFin ? 'Codice FIN riconosciuto' : 'Ricerca tra i codici OEM e FIN (punti, spazi e trattini sono ignorati)', 'ok');
+    crImpostaHint('cr-input-hint', isFin ? crT('fin_ok') : crT('oem_fin'), 'ok');
     crCercaComponente(q);
 }
 
@@ -557,10 +571,10 @@ function crFetchComponenti(q, offset, append, gen) {
 
             if (!append) {
                 if (!data.total) {
-                    el.innerHTML = `<p class="cr-vuoto">Nessun componente trovato per <strong>${crEsc(q)}</strong>.</p>`;
+                    el.innerHTML = `<p class="cr-vuoto">${crT('nessun_componente', '<strong>' + crEsc(q) + '</strong>')}</p>`;
                     return;
                 }
-                el.innerHTML = `<p class="cr-count"><strong>${crPlurale(data.total, 'risultato', 'risultati')}</strong> per “${crEsc(q)}”</p>`
+                el.innerHTML = `<p class="cr-count"><strong>${crEsc(crPlurale(data.total, 'risultati'))}</strong> ${crEsc(crT('per_q', q))}</p>`
                     + '<div class="cr-lista"></div>';
             }
 

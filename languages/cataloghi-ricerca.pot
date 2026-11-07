@@ -1,0 +1,332 @@
+# Copyright (C) 2026 Finimpianti
+# This file is distributed under the same license as the Cataloghi Ricerca Finimpianti plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Cataloghi Ricerca Finimpianti 3.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/cataloghi-ricerca\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-07T16:08:56+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: cataloghi-ricerca\n"
+
+#. Plugin Name of the plugin
+#: cataloghi-ricerca.php
+msgid "Cataloghi Ricerca Finimpianti"
+msgstr ""
+
+#. Description of the plugin
+#: cataloghi-ricerca.php
+msgid "Ricerca motori e componenti nei cataloghi PDF"
+msgstr ""
+
+#. Author of the plugin
+#: cataloghi-ricerca.php
+msgid "Finimpianti"
+msgstr ""
+
+#: includes/frontend.php:54
+msgid "Sezioni della ricerca cataloghi"
+msgstr ""
+
+#: includes/frontend.php:88
+msgid "Codice componente FIN o OEM"
+msgstr ""
+
+#: includes/frontend.php:111
+msgid "Costruttori"
+msgstr ""
+
+#: includes/frontend.php:112
+msgid "Caricamento costruttori..."
+msgstr ""
+
+#: includes/frontend.php:115
+msgid "Azzera filtri"
+msgstr ""
+
+#: includes/frontend.php:116
+#: includes/lingue.php:229
+msgid "Chiudi"
+msgstr ""
+
+#: includes/frontend.php:124
+msgid "Nome del motore"
+msgstr ""
+
+#: includes/lingue.php:188
+msgid "Ricerca interrotta: il server ha impiegato troppo tempo. Riprova con un termine più specifico."
+msgstr ""
+
+#: includes/lingue.php:189
+msgid "Si è verificato un errore. Riprova."
+msgstr ""
+
+#: includes/lingue.php:190
+msgid "Risposta del server non valida."
+msgstr ""
+
+#: includes/lingue.php:191
+msgid "Caricamento"
+msgstr ""
+
+#: includes/lingue.php:192
+#, php-format
+msgid "%s cil."
+msgstr ""
+
+#: includes/lingue.php:193
+#, php-format
+msgid "Corsa %s mm"
+msgstr ""
+
+#: includes/lingue.php:194
+msgid "Catalogo non disponibile"
+msgstr ""
+
+#: includes/lingue.php:195
+#, php-format
+msgid "pag. %s"
+msgstr ""
+
+#: includes/lingue.php:196
+msgid "pagina non indicata"
+msgstr ""
+
+#: includes/lingue.php:197
+#, php-format
+msgid "Carica altri (%s rimanenti)"
+msgstr ""
+
+#: includes/lingue.php:198
+msgid "Caricamento..."
+msgstr ""
+
+#: includes/lingue.php:199
+#, php-format
+msgid "Rimuovi filtro %s"
+msgstr ""
+
+#: includes/lingue.php:200
+msgid "Nessun costruttore trovato."
+msgstr ""
+
+#: includes/lingue.php:201
+msgid "Impossibile caricare i costruttori."
+msgstr ""
+
+#: includes/lingue.php:202
+msgid "Inserisci almeno 3 caratteri"
+msgstr ""
+
+#: includes/lingue.php:203
+msgid "Inserisci almeno 4 lettere o cifre"
+msgstr ""
+
+#: includes/lingue.php:204
+msgid "Codice FIN: continua a digitare (FIN + almeno 3 cifre, es. FIN147PC00)"
+msgstr ""
+
+#: includes/lingue.php:205
+msgid "Codice FIN riconosciuto"
+msgstr ""
+
+#: includes/lingue.php:206
+msgid "Ricerca tra i codici OEM e FIN (punti, spazi e trattini sono ignorati)"
+msgstr ""
+
+#: includes/lingue.php:207
+msgid "Nessun motore trovato."
+msgstr ""
+
+#: includes/lingue.php:208
+#, php-format
+msgid "Nessun motore trovato per %s."
+msgstr ""
+
+#: includes/lingue.php:209
+msgid "Nessun motore trovato tra i costruttori selezionati."
+msgstr ""
+
+#: includes/lingue.php:210
+#, php-format
+msgid "Nessun motore trovato per %s tra i costruttori selezionati."
+msgstr ""
+
+#: includes/lingue.php:211
+#, php-format
+msgid "%s motore"
+msgstr ""
+
+#: includes/lingue.php:212
+#, php-format
+msgid "%s motori"
+msgstr ""
+
+#: includes/lingue.php:213
+#, php-format
+msgid "%s costruttore"
+msgstr ""
+
+#: includes/lingue.php:214
+#, php-format
+msgid "%s costruttori"
+msgstr ""
+
+#: includes/lingue.php:215
+#, php-format
+msgid "%s risultato"
+msgstr ""
+
+#: includes/lingue.php:216
+#, php-format
+msgid "%s risultati"
+msgstr ""
+
+#: includes/lingue.php:217
+#, php-format
+msgid "per “%s”"
+msgstr ""
+
+#: includes/lingue.php:218
+#, php-format
+msgid "Nessun componente trovato per %s."
+msgstr ""
+
+#: includes/lingue.php:220
+msgid "Pagina precedente"
+msgstr ""
+
+#: includes/lingue.php:221
+msgid "Pagina successiva"
+msgstr ""
+
+#: includes/lingue.php:222
+msgid "Numero di pagina"
+msgstr ""
+
+#: includes/lingue.php:223
+msgid "Riduci"
+msgstr ""
+
+#: includes/lingue.php:224
+msgid "Adatta alla larghezza"
+msgstr ""
+
+#: includes/lingue.php:225
+msgid "Adattato alla larghezza"
+msgstr ""
+
+#: includes/lingue.php:226
+msgid "Ingrandisci"
+msgstr ""
+
+#: includes/lingue.php:227
+msgid "Apri il PDF in una nuova scheda"
+msgstr ""
+
+#: includes/lingue.php:228
+msgid "Apri in una nuova scheda"
+msgstr ""
+
+#: includes/lingue.php:230
+msgid "Apertura del catalogo…"
+msgstr ""
+
+#: includes/lingue.php:231
+#, php-format
+msgid "Caricamento del catalogo… %s%%"
+msgstr ""
+
+#: includes/lingue.php:232
+msgid "Impossibile mostrare il catalogo qui."
+msgstr ""
+
+#: includes/lingue.php:233
+#, php-format
+msgid "Puoi aprirlo direttamente: si aprirà alla pagina %s nei browser che lo supportano."
+msgstr ""
+
+#: includes/lingue.php:234
+msgid "Apri il PDF"
+msgstr ""
+
+#: includes/lingue.php:235
+msgid "Dettaglio tecnico"
+msgstr ""
+
+#: includes/lingue.php:236
+#, php-format
+msgid "Pagina %s"
+msgstr ""
+
+#: includes/rest.php:88
+msgid "Ricerca interrotta: il server ha impiegato troppo tempo. Riprova."
+msgstr ""
+
+#: includes/rest.php:106
+msgid "Parametro costruttore mancante."
+msgstr ""
+
+#: includes/rest.php:138
+msgid "Inserisci il nome di un motore o seleziona almeno un costruttore."
+msgstr ""
+
+#: includes/rest.php:141
+msgid "Inserisci almeno 3 caratteri."
+msgstr ""
+
+#: includes/rest.php:209
+msgid "Parametro q mancante."
+msgstr ""
+
+#: includes/rest.php:218
+msgid "Il codice FIN deve iniziare con FIN seguito da almeno 3 cifre."
+msgstr ""
+
+#: includes/rest.php:221
+msgid "Il codice deve avere almeno 4 caratteri (lettere o cifre)."
+msgstr ""
+
+#: includes/stile.php:148
+#: includes/stile.php:151
+msgid "Ricerca per codice componente"
+msgstr ""
+
+#: includes/stile.php:149
+#: includes/stile.php:154
+msgid "Ricerca per tipologia di motore"
+msgstr ""
+
+#: includes/stile.php:150
+#: includes/stile.php:158
+msgid "Consulta i cataloghi interi"
+msgstr ""
+
+#: includes/stile.php:152
+msgid "es. FIN147PC00 oppure 6500.095"
+msgstr ""
+
+#: includes/stile.php:153
+msgid "Inserisci un codice FIN o OEM: il tipo viene riconosciuto in automatico"
+msgstr ""
+
+#: includes/stile.php:155
+msgid "Filtra per costruttore"
+msgstr ""
+
+#: includes/stile.php:156
+msgid "Inserisci il nome del motore"
+msgstr ""
+
+#: includes/stile.php:157
+msgid "Scrivi almeno 3 caratteri o seleziona uno o più costruttori"
+msgstr ""
+
+#: includes/stile.php:159
+msgid "Nessun catalogo disponibile al momento."
+msgstr ""
