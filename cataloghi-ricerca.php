@@ -6,7 +6,7 @@
  * Author: Finimpianti
  * Text Domain: cataloghi-ricerca
  * Domain Path: /languages
- * Update URI: https://github.com/apgr01/cataloghi-ricerca
+ * Update URI: https://github.com/finimpianti-wp-plugins/cataloghi-ricerca
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -48,7 +48,7 @@ register_activation_hook(__FILE__, 'cr_attiva');
 // CR_UPDATE_REPO in wp-config.php; APGR_GITHUB_TOKEN (facoltativo) serve solo per repository
 // privati o per superare i limiti di richieste di GitHub.
 if ( ! defined( 'CR_UPDATE_REPO' ) ) {
-	define( 'CR_UPDATE_REPO', 'https://github.com/apgr01/cataloghi-ricerca/' );
+	define( 'CR_UPDATE_REPO', 'https://github.com/finimpianti-wp-plugins/cataloghi-ricerca/' );
 }
 require_once __DIR__ . '/lib/plugin-update-checker/plugin-update-checker.php';
 $cr_aggiornamenti = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker( CR_UPDATE_REPO, __FILE__, 'cataloghi-ricerca' );
