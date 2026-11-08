@@ -22,7 +22,7 @@ function cr_stile_gruppi() {
         'generale'   => ['Colori e generale',   'La palette del plugin: gli altri colori si riferiscono a questi, quindi cambiandoli qui cambia tutto.'],
         'caratteri'  => ['Caratteri e titoli',  'Font dei testi e aspetto dei titoli delle sezioni.'],
         'nav'        => ['Pulsanti in alto',    'I tre pulsanti che portano alle sezioni della pagina.'],
-        'carosello'  => ['Carosello',           'La striscia di immagini (le immagini si scelgono nel pannello Cataloghi Fin.).'],
+        'carosello'  => ['Carosello',           'La striscia di immagini (le immagini si scelgono nel pannello Cataloghi).'],
         'riquadri'   => ['Riquadri e campi',    'I riquadri bianchi delle due ricerche, i campi di ricerca e i filtri.'],
         'risultati'  => ['Risultati',           'Le righe dei risultati di ricerca.'],
         'fascia'     => ['Fascia cataloghi',    'La fascia a tutta larghezza con i pulsanti dei cataloghi.'],
@@ -149,8 +149,8 @@ function cr_stile_schema() {
         'testo_nav_mot'      => ['tipo' => 'testo', 'default' => __('Ricerca per tipologia di motore', 'cataloghi-ricerca'), 'etichetta' => 'Pulsante in alto: ricerca motori'],
         'testo_nav_cat'      => ['tipo' => 'testo', 'default' => __('Consulta i cataloghi interi', 'cataloghi-ricerca'), 'etichetta' => 'Pulsante in alto: cataloghi'],
         'titolo_comp'        => ['tipo' => 'testo', 'default' => __('Ricerca per codice componente', 'cataloghi-ricerca'), 'etichetta' => 'Titolo della ricerca componenti'],
-        'segnaposto_codice'  => ['tipo' => 'testo', 'default' => __('es. FIN147PC00 oppure 6500.095', 'cataloghi-ricerca'), 'etichetta' => 'Testo nel campo codice'],
-        'aiuto_codice'       => ['tipo' => 'testo', 'default' => __('Inserisci un codice FIN o OEM: il tipo viene riconosciuto in automatico', 'cataloghi-ricerca'), 'etichetta' => 'Suggerimento sotto il campo codice'],
+        'segnaposto_codice'  => ['tipo' => 'testo', 'default' => cr_prefisso() !== '' ? sprintf(/* translators: %s: prefix of the company codes. */ __('es. %s147PC00 oppure 6500.095', 'cataloghi-ricerca'), cr_prefisso()) : __('es. 6500.095', 'cataloghi-ricerca'), 'etichetta' => 'Testo nel campo codice'],
+        'aiuto_codice'       => ['tipo' => 'testo', 'default' => cr_prefisso() !== '' ? sprintf(/* translators: %s: prefix of the company codes. */ __('Inserisci un codice %s o OEM: il tipo viene riconosciuto in automatico', 'cataloghi-ricerca'), cr_prefisso()) : __('Inserisci il codice del componente: punti, spazi e trattini sono ignorati', 'cataloghi-ricerca'), 'etichetta' => 'Suggerimento sotto il campo codice'],
         'titolo_motori'      => ['tipo' => 'testo', 'default' => __('Ricerca per tipologia di motore', 'cataloghi-ricerca'), 'etichetta' => 'Titolo della ricerca motori'],
         'testo_filtri'       => ['tipo' => 'testo', 'default' => __('Filtra per costruttore', 'cataloghi-ricerca'), 'etichetta' => 'Pulsante dei filtri'],
         'segnaposto_motore'  => ['tipo' => 'testo', 'default' => __('Inserisci il nome del motore', 'cataloghi-ricerca'), 'etichetta' => 'Testo nel campo motore'],
@@ -247,7 +247,10 @@ function cr_stile_sanifica($in) {
                     $out[$chiave] = $v === null ? (int) $s['default'] : (!empty($v) ? 1 : 0);
                     break;
                 case 'testo':
-                    $out[$chiave] = $vuoto ? '' : sanitize_text_field((string) $v);
+                    // Uguale al testo predefinito = vuoto: così segue il predefinito (che dipende dalla
+                    // lingua e dal prefisso dei codici) anche se cambia in seguito.
+                    $v = $vuoto ? '' : sanitize_text_field((string) $v);
+                    $out[$chiave] = ($v === $s['default']) ? '' : $v;
                     // Versioni nelle altre lingue (con "Elementor Page Translator"): chiave__codice
                     foreach (array_keys(cr_lingue()) as $lingua) {
                         if ($lingua === cr_lingua_predefinita()) continue;

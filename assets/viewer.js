@@ -1,5 +1,5 @@
 /* ============================================================
-   Cataloghi Ricerca Finimpianti — visualizzatore PDF
+   Cataloghi Ricerca — visualizzatore PDF
    Apre i cataloghi dentro il sito, alla pagina indicata dall'indice.
    Basato su PDF.js (assets/pdfjs), caricato solo alla prima apertura.
    ============================================================ */

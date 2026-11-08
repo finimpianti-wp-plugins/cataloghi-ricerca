@@ -190,8 +190,9 @@ function cr_cerca_motori(WP_REST_Request $request) {
 
 /**
  * Ricerca componenti per codice.
- * tipo = auto (default): se il codice inizia con FIN è un codice FIN, altrimenti
- *        viene cercato sia tra gli OEM sia tra i FIN (es. FIN digitato senza prefisso).
+ * tipo = auto (default): se il codice inizia con il prefisso impostato (es. FIN) è un codice
+ *        interno, altrimenti viene cercato sia tra gli OEM sia tra gli interni (es. digitato
+ *        senza prefisso). Senza prefisso impostato si cerca sempre tra tutti i codici.
  * tipo = fin | oem: ricerca su una sola colonna (compatibilità con la versione precedente).
  * Il confronto avviene sui codici normalizzati: "6500095" trova "6500.095".
  * I codici identici a quanto cercato compaiono per primi.
@@ -209,13 +210,18 @@ function cr_get_componenti(WP_REST_Request $request) {
         return new WP_Error('param_missing', __('Parametro q mancante.', 'cataloghi-ricerca'), ['status' => 400]);
     }
 
+    // Codici interni: quelli che iniziano con il prefisso impostato (es. FIN); senza prefisso
+    // si cerca sempre tra tutti i codici.
+    $prefisso = cr_prefisso();
+    if ($tipo === 'fin' && $prefisso === '') $tipo = 'codice';
     if (!in_array($tipo, ['fin', 'oem'], true)) {
-        $tipo = preg_match('/^FIN/', $qn) ? 'fin' : 'codice';
+        $tipo = ($prefisso !== '' && strpos($qn, $prefisso) === 0) ? 'fin' : 'codice';
     }
 
     if ($tipo === 'fin') {
-        if (!preg_match('/^FIN.*\d{3}/', $qn)) {
-            return new WP_Error('invalid_code', __('Il codice FIN deve iniziare con FIN seguito da almeno 3 cifre.', 'cataloghi-ricerca'), ['status' => 400]);
+        if (!preg_match('/^' . preg_quote($prefisso, '/') . '.*\d{3}/', $qn)) {
+            /* translators: %s: prefix of the company codes (e.g. FIN). */
+            return new WP_Error('invalid_code', sprintf(__('Il codice %1$s deve iniziare con %1$s seguito da almeno 3 cifre.', 'cataloghi-ricerca'), $prefisso), ['status' => 400]);
         }
     } elseif (strlen($qn) < 4) {
         return new WP_Error('invalid_code', __('Il codice deve avere almeno 4 caratteri (lettere o cifre).', 'cataloghi-ricerca'), ['status' => 400]);

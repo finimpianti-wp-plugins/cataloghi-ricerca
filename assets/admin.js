@@ -1,5 +1,5 @@
 /* ============================================================
-   Cataloghi Ricerca Finimpianti — pannello admin
+   Cataloghi Ricerca — pannello admin
    ============================================================ */
 
 (function () {

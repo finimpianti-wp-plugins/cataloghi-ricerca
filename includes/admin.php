@@ -7,8 +7,8 @@ defined('ABSPATH') || exit;
 
 add_action('admin_menu', function () {
     add_menu_page(
-        'Cataloghi Finimpianti',
-        'Cataloghi Fin.',
+        'Cataloghi',
+        'Cataloghi',
         'manage_options',
         'cataloghi-finimpianti',
         'cr_pagina_admin',
@@ -61,6 +61,7 @@ function cr_esegui_azione_admin() {
         }
     }
     if (isset($_POST['cr_carosello_action'])) return cr_gestisci_carosello();
+    if (isset($_POST['cr_impostazioni_action'])) return cr_gestisci_impostazioni();
     return null;
 }
 
@@ -75,6 +76,7 @@ function cr_messaggio_esito($ris) {
         case 'rinomina':    return "{$f('file')} rinominato in {$f('nuovo')}.";
         case 'scansiona':   return 'Scansione completata: <strong>' . (int) $ris['totale'] . '</strong> PDF trovati, <strong>' . (int) $ris['nuovi'] . '</strong> nuovi.';
         case 'carosello':   return 'Carosello salvato: <strong>' . (int) $ris['totale'] . '</strong> immagini.';
+        case 'impostazioni':return $ris['prefisso'] !== '' ? 'Prefisso dei codici interni: <strong>' . esc_html($ris['prefisso']) . '</strong>.' : 'Nessun prefisso: la ricerca considera tutti i codici allo stesso modo.';
         case 'ripristino':  return 'Indice ' . esc_html($ris['tipo']) . ': ripristinata la versione precedente. Puoi tornare indietro con lo stesso pulsante.';
         case 'import':
             $msg = 'Import ' . esc_html($ris['tipo']) . ' completato: <strong>' . number_format_i18n($ris['righe']) . '</strong> righe ora online.';
@@ -115,7 +117,7 @@ function cr_pagina_admin() {
         <div class="cr-admin-header">
             <span class="dashicons dashicons-media-document cr-admin-icon"></span>
             <div>
-                <h1>Cataloghi Finimpianti</h1>
+                <h1>Cataloghi</h1>
                 <p class="cr-admin-subtitle">Pannello di controllo: cataloghi PDF, indici di ricerca e carosello</p>
             </div>
         </div>
@@ -556,6 +558,35 @@ function cr_pagina_admin() {
             <?php endforeach; ?>
         </div>
 
+        <!-- ================================================================ -->
+        <!-- IMPOSTAZIONI DELLA RICERCA                                       -->
+        <!-- ================================================================ -->
+        <div class="cr-section-title-bar" style="margin-top:40px" id="cr-sezione-impostazioni">
+            <span class="dashicons dashicons-admin-settings"></span>
+            <h2>Impostazioni della ricerca</h2>
+        </div>
+        <div class="cr-admin-panel cr-panel-lista">
+            <div class="cr-panel-body">
+                <form method="post" class="cr-upload-form">
+                    <?php wp_nonce_field('cr_impostazioni_nonce'); ?>
+                    <input type="hidden" name="cr_impostazioni_action" value="salva">
+                    <div class="cr-form-field">
+                        <label for="cr-prefisso">Prefisso dei codici interni</label>
+                        <input type="text" id="cr-prefisso" name="cr_prefisso" value="<?= esc_attr(cr_prefisso()) ?>" maxlength="10" style="max-width:160px" placeholder="es. FIN">
+                        <span class="cr-field-hint">
+                            I codici che iniziano con questo prefisso sono riconosciuti come codici dell'azienda (es. <code>FIN147PC00</code>: il prefisso seguito da almeno 3 cifre); gli altri vengono cercati tra tutti i codici.
+                            Lascia vuoto se l'azienda non usa un prefisso: si cerca sempre tra tutti i codici. Solo lettere e cifre.
+                            Nel CSV la colonna dei codici interni resta <code>FIN_CODE</code>.
+                        </span>
+                    </div>
+                    <button type="submit" class="cr-btn-importa">
+                        <span class="dashicons dashicons-saved"></span>
+                        Salva impostazioni
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <div class="cr-admin-info">
             <h3>Note operative</h3>
             <ul>
@@ -610,4 +641,18 @@ function cr_gestisci_carosello() {
     ]);
 
     return ['success' => true, 'azione' => 'carosello', 'totale' => count($ids)];
+}
+
+// =============================================================================
+// IMPOSTAZIONI DELLA RICERCA — salvataggio
+// =============================================================================
+
+function cr_gestisci_impostazioni() {
+    if (!current_user_can('manage_options')) return ['error' => 'Accesso negato.'];
+    if (!check_admin_referer('cr_impostazioni_nonce')) return ['error' => 'Errore di sicurezza.'];
+
+    $prefisso = cr_normalizza_prefisso(wp_unslash((string) ($_POST['cr_prefisso'] ?? '')));
+    update_option(CR_OPTION_PREFISSO, $prefisso);
+
+    return ['success' => true, 'azione' => 'impostazioni', 'prefisso' => $prefisso];
 }

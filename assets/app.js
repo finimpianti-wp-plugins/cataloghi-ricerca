@@ -501,7 +501,7 @@ function crCardMotore(m, q) {
 }
 
 // =============================================================================
-// RICERCA COMPONENTI (FIN/OEM riconosciuto in automatico)
+// RICERCA COMPONENTI (codice interno con prefisso / OEM riconosciuto in automatico)
 // =============================================================================
 
 // Suggerimenti iniziali sotto i campi: sono quelli scritti nella pagina (personalizzabili
@@ -529,14 +529,15 @@ function crValidaECerca(q) {
 
     // Validazione sulla forma normalizzata, come fa il server
     const qn    = crNormalizza(q);
-    const isFin = /^FIN/.test(qn);
+    const prefisso = (window.CR && CR.prefisso) || '';
+    const isFin = prefisso !== '' && qn.indexOf(prefisso) === 0;
 
-    if (isFin && !/^FIN.*\d{3}/.test(qn)) {
-        // Codice FIN ancora incompleto: indicazione neutra, non un errore
+    if (isFin && !/\d{3}/.test(qn.slice(prefisso.length))) {
+        // Codice interno ancora incompleto: indicazione neutra, non un errore
         crGenComponenti++;
         el.innerHTML = '';
         box.classList.remove('cr-input-error');
-        crImpostaHint('cr-input-hint', crT('fin_incompleto'));
+        crImpostaHint('cr-input-hint', crT('fin_incompleto', prefisso, prefisso));
         return;
     }
     if (!isFin && qn.length < 4) {
@@ -548,7 +549,7 @@ function crValidaECerca(q) {
     }
 
     box.classList.remove('cr-input-error');
-    crImpostaHint('cr-input-hint', isFin ? crT('fin_ok') : crT('oem_fin'), 'ok');
+    crImpostaHint('cr-input-hint', isFin ? crT('fin_ok', prefisso) : (prefisso ? crT('oem_fin', prefisso) : crT('codici')), 'ok');
     crCercaComponente(q);
 }
 

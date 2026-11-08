@@ -76,3 +76,19 @@ function cr_imposta_timeout_query() {
     $wpdb->query($sql);
     $wpdb->suppress_errors($prev);
 }
+
+/**
+ * Prefisso dei codici interni dell'azienda (es. "FIN"): i codici che iniziano così sono
+ * riconosciuti come codici interni (almeno 3 cifre dopo il prefisso), gli altri sono
+ * cercati tra tutti i codici. Vuoto = nessun prefisso. Si imposta nel pannello di controllo.
+ */
+define('CR_OPTION_PREFISSO', 'cr_prefisso_codici');
+
+function cr_prefisso() {
+    $p = get_option(CR_OPTION_PREFISSO, 'FIN');
+    return cr_normalizza_prefisso(is_string($p) ? $p : 'FIN');
+}
+
+function cr_normalizza_prefisso($p) {
+    return substr(preg_replace('/[^A-Z0-9]/', '', strtoupper(remove_accents((string) $p))), 0, 10);
+}

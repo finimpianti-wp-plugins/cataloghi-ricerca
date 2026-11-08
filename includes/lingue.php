@@ -210,9 +210,13 @@ function cr_testi_js() {
         'errore_costruttori' => __('Impossibile caricare i costruttori.', 'cataloghi-ricerca'),
         'min_3'            => __('Inserisci almeno 3 caratteri', 'cataloghi-ricerca'),
         'min_4'            => __('Inserisci almeno 4 lettere o cifre', 'cataloghi-ricerca'),
-        'fin_incompleto'   => __('Codice FIN: continua a digitare (FIN + almeno 3 cifre, es. FIN147PC00)', 'cataloghi-ricerca'),
-        'fin_ok'           => __('Codice FIN riconosciuto', 'cataloghi-ricerca'),
-        'oem_fin'          => __('Ricerca tra i codici OEM e FIN (punti, spazi e trattini sono ignorati)', 'cataloghi-ricerca'),
+        /* translators: %s: prefix of the company codes (e.g. FIN), twice. */
+        'fin_incompleto'   => __('Codice %s: continua a digitare (%s + almeno 3 cifre)', 'cataloghi-ricerca'),
+        /* translators: %s: prefix of the company codes (e.g. FIN). */
+        'fin_ok'           => __('Codice %s riconosciuto', 'cataloghi-ricerca'),
+        /* translators: %s: prefix of the company codes (e.g. FIN). */
+        'oem_fin'          => __('Ricerca tra i codici OEM e %s (punti, spazi e trattini sono ignorati)', 'cataloghi-ricerca'),
+        'codici'           => __('Ricerca tra i codici (punti, spazi e trattini sono ignorati)', 'cataloghi-ricerca'),
         'nessun_motore'    => __('Nessun motore trovato.', 'cataloghi-ricerca'),
         'nessun_motore_q'  => __('Nessun motore trovato per %s.', 'cataloghi-ricerca'),
         'nessun_motore_c'  => __('Nessun motore trovato tra i costruttori selezionati.', 'cataloghi-ricerca'),

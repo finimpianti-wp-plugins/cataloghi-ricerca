@@ -153,7 +153,7 @@ add_action('admin_notices', function () {
         $u = cr_stato_import($tipo)['ultimo'];
         if ($u && in_array($u['stato'], ['interrotto', 'fallito'], true)) {
             $url = admin_url('admin.php?page=cataloghi-finimpianti');
-            echo '<div class="notice notice-error"><p><strong>Cataloghi Finimpianti:</strong> l\'ultimo import dell\'indice '
+            echo '<div class="notice notice-error"><p><strong>Cataloghi:</strong> l\'ultimo import dell\'indice '
                . esc_html($tipo) . ' non è andato a buon fine. <a href="' . esc_url($url) . '">Apri il pannello</a></p></div>';
             return;
         }

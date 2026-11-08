@@ -31,6 +31,7 @@ function cr_shortcode() {
         'rest_url' => esc_url_raw(rest_url('cataloghi/v1')),
         'pdfjs'    => esc_url_raw($url . 'pdfjs/'),
         'lang'     => cr_multilingua() ? cr_lingua_corrente() : '',
+        'prefisso' => cr_prefisso(),
         't'        => cr_testi_js(),
     ]);
 
@@ -85,7 +86,7 @@ function cr_shortcode() {
             <div class="cr-searchbox">
                 <?= cr_icona('lente') ?>
                 <input type="search" id="cr-input-codice" placeholder="<?= esc_attr(cr_testo('segnaposto_codice')) ?>"
-                       autocomplete="off" spellcheck="false" aria-label="<?= esc_attr__('Codice componente FIN o OEM', 'cataloghi-ricerca') ?>"
+                       autocomplete="off" spellcheck="false" aria-label="<?= esc_attr(cr_prefisso() !== '' ? sprintf(/* translators: %s: prefix of the company codes. */ __('Codice componente %s o OEM', 'cataloghi-ricerca'), cr_prefisso()) : __('Codice componente', 'cataloghi-ricerca')) ?>"
                        aria-describedby="cr-input-hint" />
             </div>
             <p class="cr-input-hint" id="cr-input-hint"><?= esc_html(cr_testo('aiuto_codice')) ?></p>

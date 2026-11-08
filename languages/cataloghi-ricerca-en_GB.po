@@ -8,237 +8,254 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Domain: cataloghi-ricerca\n"
 
-#: includes/frontend.php:54
+#: includes/frontend.php:55
 msgid "Sezioni della ricerca cataloghi"
 msgstr "Catalogue search sections"
 
-#: includes/frontend.php:88
-msgid "Codice componente FIN o OEM"
-msgstr "FIN or OEM component code"
+#. translators: %s: prefix of the company codes.
+#: includes/frontend.php:89
+#, php-format
+msgid "Codice componente %s o OEM"
+msgstr "%s or OEM component code"
 
-#: includes/frontend.php:111
+#. translators: %s: prefix of the company codes.
+#: includes/frontend.php:89
+msgid "Codice componente"
+msgstr "Component code"
+
+#: includes/frontend.php:112
 msgid "Costruttori"
 msgstr "Manufacturers"
 
-#: includes/frontend.php:112
+#: includes/frontend.php:113
 msgid "Caricamento costruttori..."
 msgstr "Loading manufacturers..."
 
-#: includes/frontend.php:115
+#: includes/frontend.php:116
 msgid "Azzera filtri"
 msgstr "Clear filters"
 
-#: includes/frontend.php:116
-#: includes/lingue.php:229
+#: includes/frontend.php:117
+#: includes/lingue.php:242
 msgid "Chiudi"
 msgstr "Close"
 
-#: includes/frontend.php:124
+#: includes/frontend.php:125
 msgid "Nome del motore"
 msgstr "Engine name"
 
-#: includes/lingue.php:188
+#: includes/lingue.php:197
 msgid "Ricerca interrotta: il server ha impiegato troppo tempo. Riprova con un termine più specifico."
 msgstr "Search stopped: the server took too long. Try a more specific term."
 
-#: includes/lingue.php:189
+#: includes/lingue.php:198
 msgid "Si è verificato un errore. Riprova."
 msgstr "Something went wrong. Please try again."
 
-#: includes/lingue.php:190
+#: includes/lingue.php:199
 msgid "Risposta del server non valida."
 msgstr "Invalid server response."
 
-#: includes/lingue.php:191
+#: includes/lingue.php:200
 msgid "Caricamento"
 msgstr "Loading"
 
-#: includes/lingue.php:192
+#: includes/lingue.php:201
 #, php-format
 msgid "%s cil."
 msgstr "%s cyl."
 
-#: includes/lingue.php:193
+#: includes/lingue.php:202
 #, php-format
 msgid "Corsa %s mm"
 msgstr "Stroke %s mm"
 
-#: includes/lingue.php:194
+#: includes/lingue.php:203
 msgid "Catalogo non disponibile"
 msgstr "Catalogue not available"
 
-#: includes/lingue.php:195
+#: includes/lingue.php:204
 #, php-format
 msgid "pag. %s"
 msgstr "p. %s"
 
-#: includes/lingue.php:196
+#: includes/lingue.php:205
 msgid "pagina non indicata"
 msgstr "page not specified"
 
-#: includes/lingue.php:197
+#: includes/lingue.php:206
 #, php-format
 msgid "Carica altri (%s rimanenti)"
 msgstr "Load more (%s left)"
 
-#: includes/lingue.php:198
+#: includes/lingue.php:207
 msgid "Caricamento..."
 msgstr "Loading..."
 
-#: includes/lingue.php:199
+#: includes/lingue.php:208
 #, php-format
 msgid "Rimuovi filtro %s"
 msgstr "Remove filter %s"
 
-#: includes/lingue.php:200
+#: includes/lingue.php:209
 msgid "Nessun costruttore trovato."
 msgstr "No manufacturers found."
 
-#: includes/lingue.php:201
+#: includes/lingue.php:210
 msgid "Impossibile caricare i costruttori."
 msgstr "Unable to load the manufacturers."
 
-#: includes/lingue.php:202
+#: includes/lingue.php:211
 msgid "Inserisci almeno 3 caratteri"
 msgstr "Enter at least 3 characters"
 
-#: includes/lingue.php:203
+#: includes/lingue.php:212
 msgid "Inserisci almeno 4 lettere o cifre"
 msgstr "Enter at least 4 letters or digits"
 
-#: includes/lingue.php:204
-msgid "Codice FIN: continua a digitare (FIN + almeno 3 cifre, es. FIN147PC00)"
-msgstr "FIN code: keep typing (FIN + at least 3 digits, e.g. FIN147PC00)"
+#. translators: %s: prefix of the company codes (e.g. FIN), twice.
+#: includes/lingue.php:214
+#, php-format
+msgid "Codice %s: continua a digitare (%s + almeno 3 cifre)"
+msgstr "%s code: keep typing (%s + at least 3 digits)"
 
-#: includes/lingue.php:205
-msgid "Codice FIN riconosciuto"
-msgstr "FIN code recognised"
+#. translators: %s: prefix of the company codes (e.g. FIN).
+#: includes/lingue.php:216
+#, php-format
+msgid "Codice %s riconosciuto"
+msgstr "%s code recognised"
 
-#: includes/lingue.php:206
-msgid "Ricerca tra i codici OEM e FIN (punti, spazi e trattini sono ignorati)"
-msgstr "Searching OEM and FIN codes (dots, spaces and hyphens are ignored)"
+#. translators: %s: prefix of the company codes (e.g. FIN).
+#: includes/lingue.php:218
+#, php-format
+msgid "Ricerca tra i codici OEM e %s (punti, spazi e trattini sono ignorati)"
+msgstr "Searching OEM and %s codes (dots, spaces and hyphens are ignored)"
 
-#: includes/lingue.php:207
+#: includes/lingue.php:219
+msgid "Ricerca tra i codici (punti, spazi e trattini sono ignorati)"
+msgstr "Searching all codes (dots, spaces and hyphens are ignored)"
+
+#: includes/lingue.php:220
 msgid "Nessun motore trovato."
 msgstr "No engines found."
 
-#: includes/lingue.php:208
+#: includes/lingue.php:221
 #, php-format
 msgid "Nessun motore trovato per %s."
 msgstr "No engines found for %s."
 
-#: includes/lingue.php:209
+#: includes/lingue.php:222
 msgid "Nessun motore trovato tra i costruttori selezionati."
 msgstr "No engines found among the selected manufacturers."
 
-#: includes/lingue.php:210
+#: includes/lingue.php:223
 #, php-format
 msgid "Nessun motore trovato per %s tra i costruttori selezionati."
 msgstr "No engines found for %s among the selected manufacturers."
 
-#: includes/lingue.php:211
+#: includes/lingue.php:224
 #, php-format
 msgid "%s motore"
 msgstr "%s engine"
 
-#: includes/lingue.php:212
+#: includes/lingue.php:225
 #, php-format
 msgid "%s motori"
 msgstr "%s engines"
 
-#: includes/lingue.php:213
+#: includes/lingue.php:226
 #, php-format
 msgid "%s costruttore"
 msgstr "%s manufacturer"
 
-#: includes/lingue.php:214
+#: includes/lingue.php:227
 #, php-format
 msgid "%s costruttori"
 msgstr "%s manufacturers"
 
-#: includes/lingue.php:215
+#: includes/lingue.php:228
 #, php-format
 msgid "%s risultato"
 msgstr "%s result"
 
-#: includes/lingue.php:216
+#: includes/lingue.php:229
 #, php-format
 msgid "%s risultati"
 msgstr "%s results"
 
-#: includes/lingue.php:217
+#: includes/lingue.php:230
 #, php-format
 msgid "per “%s”"
 msgstr "for “%s”"
 
-#: includes/lingue.php:218
+#: includes/lingue.php:231
 #, php-format
 msgid "Nessun componente trovato per %s."
 msgstr "No components found for %s."
 
-#: includes/lingue.php:220
+#: includes/lingue.php:233
 msgid "Pagina precedente"
 msgstr "Previous page"
 
-#: includes/lingue.php:221
+#: includes/lingue.php:234
 msgid "Pagina successiva"
 msgstr "Next page"
 
-#: includes/lingue.php:222
+#: includes/lingue.php:235
 msgid "Numero di pagina"
 msgstr "Page number"
 
-#: includes/lingue.php:223
+#: includes/lingue.php:236
 msgid "Riduci"
 msgstr "Zoom out"
 
-#: includes/lingue.php:224
+#: includes/lingue.php:237
 msgid "Adatta alla larghezza"
 msgstr "Fit to width"
 
-#: includes/lingue.php:225
+#: includes/lingue.php:238
 msgid "Adattato alla larghezza"
 msgstr "Fitted to width"
 
-#: includes/lingue.php:226
+#: includes/lingue.php:239
 msgid "Ingrandisci"
 msgstr "Zoom in"
 
-#: includes/lingue.php:227
+#: includes/lingue.php:240
 msgid "Apri il PDF in una nuova scheda"
 msgstr "Open the PDF in a new tab"
 
-#: includes/lingue.php:228
+#: includes/lingue.php:241
 msgid "Apri in una nuova scheda"
 msgstr "Open in a new tab"
 
-#: includes/lingue.php:230
+#: includes/lingue.php:243
 msgid "Apertura del catalogo…"
 msgstr "Opening the catalogue…"
 
-#: includes/lingue.php:231
+#: includes/lingue.php:244
 #, php-format
 msgid "Caricamento del catalogo… %s%%"
 msgstr "Loading the catalogue… %s%%"
 
-#: includes/lingue.php:232
+#: includes/lingue.php:245
 msgid "Impossibile mostrare il catalogo qui."
 msgstr "The catalogue cannot be shown here."
 
-#: includes/lingue.php:233
+#: includes/lingue.php:246
 #, php-format
 msgid "Puoi aprirlo direttamente: si aprirà alla pagina %s nei browser che lo supportano."
 msgstr "You can open it directly: it will open at page %s in browsers that support it."
 
-#: includes/lingue.php:234
+#: includes/lingue.php:247
 msgid "Apri il PDF"
 msgstr "Open the PDF"
 
-#: includes/lingue.php:235
+#: includes/lingue.php:248
 msgid "Dettaglio tecnico"
 msgstr "Technical details"
 
-#: includes/lingue.php:236
+#: includes/lingue.php:249
 #, php-format
 msgid "Pagina %s"
 msgstr "Page %s"
@@ -259,15 +276,17 @@ msgstr "Enter an engine name or select at least one manufacturer."
 msgid "Inserisci almeno 3 caratteri."
 msgstr "Enter at least 3 characters."
 
-#: includes/rest.php:209
+#: includes/rest.php:210
 msgid "Parametro q mancante."
 msgstr "Missing q parameter."
 
-#: includes/rest.php:218
-msgid "Il codice FIN deve iniziare con FIN seguito da almeno 3 cifre."
-msgstr "The FIN code must start with FIN followed by at least 3 digits."
+#. translators: %s: prefix of the company codes (e.g. FIN).
+#: includes/rest.php:224
+#, php-format
+msgid "Il codice %1$s deve iniziare con %1$s seguito da almeno 3 cifre."
+msgstr "The %1$s code must start with %1$s followed by at least 3 digits."
 
-#: includes/rest.php:221
+#: includes/rest.php:227
 msgid "Il codice deve avere almeno 4 caratteri (lettere o cifre)."
 msgstr "The code must have at least 4 characters (letters or digits)."
 
@@ -276,6 +295,7 @@ msgstr "The code must have at least 4 characters (letters or digits)."
 msgid "Ricerca per codice componente"
 msgstr "Search by component code"
 
+#. translators: %s: prefix of the company codes.
 #: includes/stile.php:149
 #: includes/stile.php:154
 msgid "Ricerca per tipologia di motore"
@@ -286,13 +306,27 @@ msgstr "Search by engine type"
 msgid "Consulta i cataloghi interi"
 msgstr "Browse the full catalogues"
 
+#. translators: %s: prefix of the company codes.
 #: includes/stile.php:152
-msgid "es. FIN147PC00 oppure 6500.095"
-msgstr "e.g. FIN147PC00 or 6500.095"
+#, php-format
+msgid "es. %s147PC00 oppure 6500.095"
+msgstr "e.g. %s147PC00 or 6500.095"
 
+#. translators: %s: prefix of the company codes.
+#: includes/stile.php:152
+msgid "es. 6500.095"
+msgstr "e.g. 6500.095"
+
+#. translators: %s: prefix of the company codes.
 #: includes/stile.php:153
-msgid "Inserisci un codice FIN o OEM: il tipo viene riconosciuto in automatico"
-msgstr "Enter a FIN or OEM code: the type is detected automatically"
+#, php-format
+msgid "Inserisci un codice %s o OEM: il tipo viene riconosciuto in automatico"
+msgstr "Enter a %s or OEM code: the type is detected automatically"
+
+#. translators: %s: prefix of the company codes.
+#: includes/stile.php:153
+msgid "Inserisci il codice del componente: punti, spazi e trattini sono ignorati"
+msgstr "Enter the component code: dots, spaces and hyphens are ignored"
 
 #: includes/stile.php:155
 msgid "Filtra per costruttore"
