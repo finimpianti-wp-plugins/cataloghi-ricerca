@@ -25,9 +25,15 @@ add_action('admin_enqueue_scripts', function ($hook) {
     wp_enqueue_script('jquery-ui-sortable');
     wp_enqueue_style('cr-admin', $url . 'admin.css', [], filemtime($dir . 'admin.css'));
     wp_enqueue_script('cr-admin', $url . 'admin.js', ['jquery'], filemtime($dir . 'admin.js'), true);
+    $lingue = [];
+    foreach (cr_lingue() as $codice => $nome) $lingue[] = ['codice' => $codice, 'nome' => $nome];
     wp_localize_script('cr-admin', 'CR_ADMIN', [
         'max_upload'   => wp_max_upload_size(),
         'max_upload_h' => size_format(wp_max_upload_size()),
+        'ajax'         => admin_url('admin-ajax.php'),
+        'nonce'        => wp_create_nonce('cr_pdf_blocco'),
+        'lingue'       => $lingue,
+        'cartella'     => 'wp-content/uploads/cataloghi-pdf/',
     ]);
 });
 
@@ -217,12 +223,13 @@ function cr_pagina_admin() {
             <div class="cr-admin-panel">
                 <div class="cr-panel-header cataloghi">
                     <span class="dashicons dashicons-upload"></span>
-                    <h2>Carica un catalogo</h2>
+                    <h2>Carica cataloghi</h2>
                 </div>
                 <div class="cr-panel-body">
                     <p class="cr-panel-desc">
-                        Il file viene salvato <strong>con il suo nome originale</strong>, che deve coincidere con la colonna
-                        <code>File_origine</code> degli indici. Se esiste già un catalogo con lo stesso nome ti verrà chiesto se sostituirlo.
+                        Puoi scegliere <strong>più PDF insieme</strong>: prima di caricarli vedi l'elenco e puoi correggere etichette e lingua.
+                        Ogni file viene salvato <strong>con il suo nome originale</strong>, che deve coincidere con la colonna
+                        <code>File_origine</code> degli indici (puoi importare gli indici anche dopo).
                     </p>
                     <div class="cr-upload-limit-info">
                         <span class="dashicons dashicons-info-outline"></span>
@@ -232,13 +239,13 @@ function cr_pagina_admin() {
                         <?php wp_nonce_field('cr_pdf_nonce'); ?>
                         <input type="hidden" name="cr_pdf_action" value="upload">
                         <input type="hidden" name="cr_pdf_sovrascrivi" value="0" id="cr-pdf-sovrascrivi">
-                        <div class="cr-form-field">
+                        <div class="cr-form-field cr-solo-senza-js">
                             <label for="cr-pdf-label">Etichetta del catalogo</label>
                             <input type="text" id="cr-pdf-label" name="cr_pdf_label" placeholder="Es. Catalogo 1 — LOMBARDINI">
                             <span class="cr-field-hint">Il nome mostrato agli utenti. Se lo lasci vuoto viene usato il nome del file (o l'etichetta attuale, se sostituisci un catalogo).</span>
                         </div>
                         <?php if (cr_lingue()): ?>
-                            <div class="cr-form-field">
+                            <div class="cr-form-field cr-solo-senza-js">
                                 <label for="cr-pdf-lingua">Lingua del catalogo</label>
                                 <select id="cr-pdf-lingua" name="cr_pdf_lingua">
                                     <option value="">— Non indicata —</option>
@@ -251,17 +258,18 @@ function cr_pagina_admin() {
                         <?php endif; ?>
                         <div class="cr-file-area" id="cr-drop-pdf">
                             <span class="dashicons dashicons-pdf cr-upload-icon"></span>
-                            <p>Trascina qui il PDF oppure</p>
+                            <p>Trascina qui uno o più PDF oppure</p>
                             <label class="cr-file-label">
                                 Seleziona PDF
-                                <input type="file" name="cr_pdf_file" accept=".pdf,application/pdf" required data-nome="cr-nome-pdf">
+                                <input type="file" name="cr_pdf_file" accept=".pdf,application/pdf" required multiple data-nome="cr-nome-pdf" id="cr-pdf-input">
                             </label>
                             <p class="cr-nome-file" id="cr-nome-pdf"></p>
                         </div>
-                        <button type="submit" class="cr-btn-importa cataloghi">
+                        <button type="submit" class="cr-btn-importa cataloghi cr-solo-senza-js">
                             <span class="dashicons dashicons-upload"></span>
                             Carica catalogo
                         </button>
+                        <noscript><p class="cr-field-hint">Senza JavaScript si carica un PDF alla volta.</p></noscript>
                     </form>
                 </div>
             </div>
@@ -296,6 +304,58 @@ function cr_pagina_admin() {
                 </div>
             </div>
 
+        </div>
+
+        <!-- Caricamento in blocco: elenco dei PDF scelti (compilato da admin.js) -->
+        <div class="cr-admin-panel cr-panel-lista" id="cr-blocco" hidden>
+            <div class="cr-panel-header cataloghi">
+                <span class="dashicons dashicons-upload"></span>
+                <h2 id="cr-blocco-titolo">PDF da caricare</h2>
+            </div>
+            <div class="cr-panel-body">
+                <div class="cr-blocco-barra">
+                    <p class="cr-panel-desc" id="cr-blocco-riepilogo"></p>
+                    <?php if (cr_lingue()): ?>
+                        <label class="cr-blocco-lingua-tutti">Lingua per tutti
+                            <select id="cr-blocco-lingua-tutti">
+                                <option value="">— Non indicata —</option>
+                                <?php foreach (cr_lingue() as $codice => $nome_lingua): ?>
+                                    <option value="<?= esc_attr($codice) ?>"><?= esc_html($nome_lingua) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                    <?php endif; ?>
+                </div>
+                <div class="cr-cataloghi-table-wrap">
+                    <table class="cr-cataloghi-table cr-blocco-tabella">
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Etichetta frontend</th>
+                                <?php if (cr_lingue()): ?><th>Lingua</th><?php endif; ?>
+                                <th>Dimensione</th>
+                                <th>Stato</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cr-blocco-righe"></tbody>
+                    </table>
+                </div>
+                <div class="cr-blocco-avanzamento" id="cr-blocco-avanzamento" hidden>
+                    <div class="cr-blocco-barra-progresso"><span id="cr-blocco-progresso"></span></div>
+                    <p id="cr-blocco-progresso-testo"></p>
+                </div>
+                <div class="cr-blocco-azioni">
+                    <button type="button" class="cr-btn-secondario" id="cr-blocco-annulla">Annulla</button>
+                    <button type="button" class="cr-btn-importa cataloghi" id="cr-blocco-carica">
+                        <span class="dashicons dashicons-upload"></span>
+                        <span id="cr-blocco-carica-testo">Carica</span>
+                    </button>
+                    <button type="button" class="cr-btn-importa cataloghi" id="cr-blocco-ricarica" hidden>
+                        <span class="dashicons dashicons-update"></span>
+                        Aggiorna l'elenco dei cataloghi
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="cr-admin-panel cr-panel-lista">
@@ -602,19 +662,10 @@ function cr_pagina_admin() {
         <script>
             window.CR_ADMIN_PDF = <?= wp_json_encode(array_map(fn($c) => [
                 'file' => $c['file'], 'size' => cr_format_bytes($c['size']), 'data' => cr_format_data($c['modified']),
+                'label' => $c['label'], 'lingua' => cr_lingue() ? cr_lingua_pdf($c['file']) : '',
             ], $cataloghi)) ?>;
         </script>
 
-        <!-- Conferma sovrascrittura PDF -->
-        <dialog class="cr-dialog" id="cr-dialog-sovrascrivi">
-            <h3>Questo catalogo esiste già</h3>
-            <p>Nella cartella c'è già <strong id="cr-dialog-file"></strong> <span id="cr-dialog-info"></span>.</p>
-            <p>Vuoi sostituirlo con il file che stai caricando? I risultati di ricerca apriranno la nuova versione.</p>
-            <div class="cr-dialog-azioni">
-                <button type="button" class="cr-btn-secondario" id="cr-dialog-annulla">Annulla</button>
-                <button type="button" class="cr-btn-importa" id="cr-dialog-conferma">Sovrascrivi</button>
-            </div>
-        </dialog>
 
     </div><!-- .wrap -->
     <?php

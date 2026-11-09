@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Cataloghi Ricerca
  * Description: Ricerca motori e componenti nei cataloghi PDF
- * Version: 3.4
+ * Version: 3.5
  * Author: Finimpianti
  * Text Domain: cataloghi-ricerca
  * Domain Path: /languages
@@ -13,7 +13,7 @@
 
 defined('ABSPATH') || exit;
 
-define('CR_VERSION',          '3.4');
+define('CR_VERSION',          '3.5');
 define('CR_DB_VERSION',       '2');
 define('CR_FILE',             __FILE__);
 define('CR_TABLE_MOTORI',     'cataloghi_motori');

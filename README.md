@@ -2,6 +2,10 @@
 
 Ricerca di motori e componenti nei cataloghi PDF a partire da indici CSV (motori e componenti), con visualizzatore PDF integrato alla pagina giusta, carosello immagini e pannello "Stile e testi". Shortcode `[cataloghi_ricerca]`. Multilingua con Elementor Page Translator (lingua per PDF, testi per lingua).
 
+## Caricare i cataloghi
+
+*Cataloghi → Pannello di controllo → Carica cataloghi*: scegli o trascina **uno o più PDF**. Compare l'elenco dei file con etichetta (dal nome del file, modificabile) e lingua (anche "Lingua per tutti"); i cataloghi già presenti si sostituiscono solo se spunti "sostituisci", i file oltre il limite di upload del server vanno copiati via FTP in `wp-content/uploads/cataloghi-pdf/` e poi "Scansiona cartella". I PDF si possono caricare anche prima degli indici CSV.
+
 ## Installazione
 
 1. Scarica lo zip dell'ultima versione da **Releases** (a destra in questa pagina): `cataloghi-ricerca-<versione>.zip`.

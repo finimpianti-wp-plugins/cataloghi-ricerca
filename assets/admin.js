@@ -7,7 +7,7 @@
     // Nome del file scelto, sotto l'area di upload
     function mostraNome(input) {
         const el = document.getElementById(input.dataset.nome);
-        if (el) el.textContent = input.files.length ? '📄 ' + input.files[0].name : '';
+        if (el) el.textContent = input.files.length > 1 ? '📄 ' + input.files.length + ' file scelti' : (input.files.length ? '📄 ' + input.files[0].name : '');
     }
 
     document.querySelectorAll('.cr-file-area input[type="file"]').forEach(input => {
@@ -77,58 +77,247 @@
     });
 
     // ------------------------------------------------------------------
-    // Upload PDF: limite di dimensione e conferma sovrascrittura
+    // Caricamento dei PDF: uno o più file, elenco da controllare, invio
+    // uno alla volta (ogni richiesta resta sotto i limiti del server e un
+    // errore su un file non ferma gli altri)
     // ------------------------------------------------------------------
     const formPdf = document.getElementById('cr-form-upload-pdf');
-    const dialog  = document.getElementById('cr-dialog-sovrascrivi');
+    const inputPdf = document.getElementById('cr-pdf-input');
+    const blocco = document.getElementById('cr-blocco');
+    const C = window.CR_ADMIN || {};
 
     // Stessa pulizia del nome fatta dal server (cr_nome_pdf_sicuro)
     function nomeSicuro(nome) {
         return nome.replace(/[\x00-\x1F\x7F\/\\:*?"<>|]/g, '').replace(/\s+/g, ' ').trim().replace(/^[. ]+/, '');
     }
+    function mb(byte) {
+        return byte >= 1048576 ? (byte / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(byte / 1024)) + ' KB';
+    }
+    function el(tag, attrs, testo) {
+        const e = document.createElement(tag);
+        Object.entries(attrs || {}).forEach(([k, v]) => { if (v !== null && v !== undefined) e.setAttribute(k, v); });
+        if (testo !== undefined) e.textContent = testo;
+        return e;
+    }
 
-    if (formPdf) {
-        // capture: questo controllo viene eseguito prima del feedback "In corso..."
-        formPdf.addEventListener('submit', e => {
-            const input = formPdf.querySelector('input[type="file"]');
-            const file  = input && input.files[0];
-            if (!file) return;
+    if (formPdf && inputPdf && blocco && C.ajax) {
+        // Con JavaScript il modulo serve solo a scegliere i file: etichetta e lingua si scelgono nell'elenco
+        formPdf.querySelectorAll('.cr-solo-senza-js').forEach(n => { n.hidden = true; });
+        inputPdf.removeAttribute('required');
 
-            if (window.CR_ADMIN && file.size > CR_ADMIN.max_upload) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                window.alert('Il file pesa ' + (file.size / 1048576).toFixed(1) + ' MB e supera il limite del server (' + CR_ADMIN.max_upload_h + ').\n\nCaricalo via FTP nella cartella dei cataloghi e poi usa "Scansiona cartella".');
+        const righeEl = document.getElementById('cr-blocco-righe');
+        const btnCarica = document.getElementById('cr-blocco-carica');
+        const btnAnnulla = document.getElementById('cr-blocco-annulla');
+        const btnRicarica = document.getElementById('cr-blocco-ricarica');
+        const linguaTutti = document.getElementById('cr-blocco-lingua-tutti');
+        const lingue = C.lingue || [];
+        const esistenti = window.CR_ADMIN_PDF || [];
+        let righe = [];
+        let inCaricamento = false;
+
+        function selectLingua(valore) {
+            const sel = el('select', { 'aria-label': 'Lingua' });
+            sel.appendChild(el('option', { value: '' }, '—'));
+            lingue.forEach(l => {
+                const o = el('option', { value: l.codice }, l.nome);
+                if (l.codice === valore) o.selected = true;
+                sel.appendChild(o);
+            });
+            return sel;
+        }
+
+        function prepara(files) {
+            if (inCaricamento) return;
+            righe = [];
+            righeEl.textContent = '';
+            const visti = {};
+            Array.from(files).forEach(file => {
+                const nome = nomeSicuro(file.name);
+                const chiave = nome.toLowerCase();
+                const r = { file, nome, stato: 'pronto', messaggio: '' };
+                if (!/\.pdf$/i.test(nome)) { r.stato = 'saltato'; r.messaggio = 'Non è un PDF'; }
+                else if (visti[chiave]) { r.stato = 'saltato'; r.messaggio = 'Già nell\'elenco'; }
+                else if (C.max_upload && file.size > C.max_upload) {
+                    r.stato = 'saltato';
+                    r.messaggio = 'Troppo grande per il caricamento (limite ' + C.max_upload_h + '): copialo via FTP in ' + C.cartella + ' e usa "Scansiona cartella"';
+                }
+                visti[chiave] = true;
+                r.esistente = esistenti.find(p => p.file.toLowerCase() === chiave) || null;
+                righe.push(r);
+
+                const tr = el('tr', { 'data-stato': r.stato });
+                const tdFile = el('td', { class: 'cr-cell-file' });
+                tdFile.appendChild(el('span', { class: 'dashicons dashicons-pdf' }));
+                tdFile.appendChild(document.createTextNode(' ' + nome));
+                tr.appendChild(tdFile);
+
+                const tdLabel = el('td', { class: 'cr-cell-label' });
+                r.inputLabel = el('input', { type: 'text', class: 'cr-label-input', 'aria-label': 'Etichetta di ' + nome });
+                r.inputLabel.value = r.esistente ? r.esistente.label : nome.replace(/\.pdf$/i, '');
+                tdLabel.appendChild(r.inputLabel);
+                tr.appendChild(tdLabel);
+
+                if (lingue.length) {
+                    const tdLingua = el('td', { class: 'cr-cell-lingua' });
+                    r.selLingua = selectLingua(r.esistente ? r.esistente.lingua : (linguaTutti ? linguaTutti.value : ''));
+                    tdLingua.appendChild(r.selLingua);
+                    tr.appendChild(tdLingua);
+                }
+                tr.appendChild(el('td', { class: 'cr-cell-size' }, mb(file.size)));
+
+                r.tdStato = el('td', { class: 'cr-cell-stato' });
+                tr.appendChild(r.tdStato);
+                righeEl.appendChild(tr);
+                r.tr = tr;
+                mostraStato(r);
+            });
+            blocco.hidden = false;
+            btnRicarica.hidden = true;
+            btnCarica.hidden = false;
+            btnAnnulla.hidden = false;
+            document.getElementById('cr-blocco-avanzamento').hidden = true;
+            aggiornaRiepilogo();
+            blocco.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function mostraStato(r) {
+            r.tr.setAttribute('data-stato', r.stato);
+            r.tdStato.textContent = '';
+            if (r.stato === 'pronto' && r.esistente) {
+                const lab = el('label', { class: 'cr-blocco-sostituisci' });
+                r.chkSostituisci = r.chkSostituisci || el('input', { type: 'checkbox' });
+                r.chkSostituisci.onchange = aggiornaRiepilogo;
+                lab.appendChild(r.chkSostituisci);
+                lab.appendChild(document.createTextNode(' Già presente: sostituisci'));
+                r.tdStato.appendChild(lab);
+                r.tdStato.appendChild(el('span', { class: 'cr-field-hint' }, 'attuale: ' + r.esistente.size + ', ' + r.esistente.data));
                 return;
             }
+            const testi = { pronto: 'Pronto', saltato: r.messaggio, attesa: 'In attesa', invio: r.messaggio || 'Caricamento…', ok: r.messaggio, errore: r.messaggio };
+            r.tdStato.appendChild(el('span', { class: 'cr-blocco-stato ' + r.stato }, testi[r.stato] || ''));
+        }
 
-            if (document.getElementById('cr-pdf-sovrascrivi').value === '1') return;
+        function daCaricare() {
+            return righe.filter(r => r.stato === 'pronto' && (!r.esistente || (r.chkSostituisci && r.chkSostituisci.checked)));
+        }
 
-            const nome = nomeSicuro(file.name).toLowerCase();
-            const esistente = (window.CR_ADMIN_PDF || []).find(p => p.file.toLowerCase() === nome);
-            if (!esistente) return;
+        function aggiornaRiepilogo() {
+            const n = daCaricare().length;
+            const presenti = righe.filter(r => r.stato === 'pronto' && r.esistente && !(r.chkSostituisci && r.chkSostituisci.checked)).length;
+            const saltati = righe.filter(r => r.stato === 'saltato').length;
+            const parti = [righe.length + (righe.length === 1 ? ' file scelto' : ' file scelti')];
+            if (presenti) parti.push(presenti === 1 ? '1 già presente (non viene toccato se non spunti "sostituisci")' : presenti + ' già presenti (non vengono toccati se non spunti "sostituisci")');
+            if (saltati) parti.push(saltati + ' da saltare');
+            document.getElementById('cr-blocco-riepilogo').textContent = parti.join(' — ') + '.';
+            document.getElementById('cr-blocco-carica-testo').textContent = n === 1 ? 'Carica 1 catalogo' : 'Carica ' + n + ' cataloghi';
+            btnCarica.disabled = n === 0;
+        }
 
+        if (linguaTutti) {
+            linguaTutti.addEventListener('change', () => {
+                righe.forEach(r => { if (r.selLingua && !r.selLingua.disabled) r.selLingua.value = linguaTutti.value; });
+            });
+        }
+
+        inputPdf.addEventListener('change', () => { if (inputPdf.files.length) prepara(inputPdf.files); });
+        formPdf.addEventListener('submit', e => {
             e.preventDefault();
             e.stopImmediatePropagation();
-            document.getElementById('cr-dialog-file').textContent = esistente.file;
-            document.getElementById('cr-dialog-info').textContent = '(' + esistente.size + ', modificato il ' + esistente.data + ')';
-            if (dialog && dialog.showModal) {
-                dialog.showModal();
-            } else if (window.confirm('Esiste già "' + esistente.file + '". Vuoi sovrascriverlo?')) {
-                conferma();
-            }
+            if (inputPdf.files.length) prepara(inputPdf.files);
         }, true);
 
-        function conferma() {
-            document.getElementById('cr-pdf-sovrascrivi').value = '1';
-            if (dialog && dialog.open) dialog.close();
-            inCorso(formPdf);
-            formPdf.submit();
+        btnAnnulla.addEventListener('click', () => {
+            if (inCaricamento) return;
+            blocco.hidden = true;
+            righe = [];
+            inputPdf.value = '';
+            const nomeEl = document.getElementById('cr-nome-pdf');
+            if (nomeEl) nomeEl.textContent = '';
+        });
+        btnRicarica.addEventListener('click', () => { window.location.reload(); });
+
+        window.addEventListener('beforeunload', e => {
+            if (inCaricamento) { e.preventDefault(); e.returnValue = ''; }
+        });
+
+        function invia(r) {
+            return new Promise(resolve => {
+                const fd = new FormData();
+                fd.append('action', 'cr_pdf_carica');
+                fd.append('nonce', C.nonce);
+                fd.append('file', r.file, r.nome);
+                fd.append('label', r.inputLabel.value);
+                if (r.selLingua) fd.append('lingua', r.selLingua.value);
+                fd.append('sovrascrivi', r.esistente ? '1' : '0');
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', C.ajax);
+                xhr.upload.onprogress = ev => {
+                    if (!ev.lengthComputable) return;
+                    r.messaggio = 'Caricamento ' + Math.round(ev.loaded / ev.total * 100) + '%';
+                    mostraStato(r);
+                };
+                xhr.onload = () => {
+                    let risposta = null;
+                    try { risposta = JSON.parse(xhr.responseText); } catch (err) { risposta = null; }
+                    if (risposta && risposta.success) {
+                        r.stato = 'ok';
+                        r.messaggio = risposta.data.azione === 'sovrascritto' ? 'Sostituito ✓' : 'Caricato ✓';
+                    } else {
+                        r.stato = 'errore';
+                        r.messaggio = risposta && risposta.data && risposta.data.messaggio
+                            ? risposta.data.messaggio
+                            : (xhr.status === 413 ? 'Il server ha rifiutato il file perché troppo grande: copialo via FTP.' : 'Errore del server (' + xhr.status + '): riprova.');
+                    }
+                    mostraStato(r);
+                    resolve();
+                };
+                xhr.onerror = () => {
+                    r.stato = 'errore';
+                    r.messaggio = 'Connessione interrotta: riprova.';
+                    mostraStato(r);
+                    resolve();
+                };
+                xhr.send(fd);
+            });
         }
 
-        if (dialog) {
-            document.getElementById('cr-dialog-conferma').addEventListener('click', conferma);
-            document.getElementById('cr-dialog-annulla').addEventListener('click', () => dialog.close());
-        }
+        btnCarica.addEventListener('click', async () => {
+            const coda = daCaricare();
+            if (!coda.length || inCaricamento) return;
+            inCaricamento = true;
+            btnCarica.disabled = true;
+            btnAnnulla.hidden = true;
+            righe.forEach(r => {
+                if (r.inputLabel) r.inputLabel.disabled = true;
+                if (r.selLingua) r.selLingua.disabled = true;
+                if (r.chkSostituisci) r.chkSostituisci.disabled = true;
+                if (r.stato === 'pronto' && !coda.includes(r)) { r.stato = 'saltato'; r.messaggio = 'Già presente: non toccato'; mostraStato(r); }
+            });
+            if (linguaTutti) linguaTutti.disabled = true;
+            coda.forEach(r => { r.stato = 'attesa'; mostraStato(r); });
+            const av = document.getElementById('cr-blocco-avanzamento');
+            const barra = document.getElementById('cr-blocco-progresso');
+            const testo = document.getElementById('cr-blocco-progresso-testo');
+            av.hidden = false;
+            for (let i = 0; i < coda.length; i++) {
+                testo.textContent = 'Caricamento ' + (i + 1) + ' di ' + coda.length + ': ' + coda[i].nome + ' — non chiudere la pagina.';
+                barra.style.width = Math.round(i / coda.length * 100) + '%';
+                coda[i].stato = 'invio';
+                coda[i].messaggio = '';
+                mostraStato(coda[i]);
+                await invia(coda[i]);
+            }
+            barra.style.width = '100%';
+            const ok = coda.filter(r => r.stato === 'ok').length;
+            const err = coda.length - ok;
+            testo.textContent = 'Fatto: ' + ok + (ok === 1 ? ' catalogo caricato' : ' cataloghi caricati')
+                + (err ? ', ' + err + (err === 1 ? ' errore' : ' errori') + ' (vedi la colonna Stato).' : '.');
+            av.classList.toggle('con-errori', err > 0);
+            inCaricamento = false;
+            btnCarica.hidden = true;
+            btnRicarica.hidden = false;
+            inputPdf.value = '';
+        });
     }
 
     // ------------------------------------------------------------------

@@ -11,4 +11,6 @@ Ricerca di motori e componenti nei cataloghi PDF (indici CSV), visualizzatore PD
 
 Ricerca di motori e componenti nei cataloghi PDF (indici CSV), visualizzatore PDF integrato, carosello e pannello di stile. Shortcode [cataloghi_ricerca].
 
+I PDF si possono caricare anche tutti insieme (Cataloghi -> Carica cataloghi), con etichetta e lingua per ognuno.
+
 Gli aggiornamenti arrivano da GitHub: ogni nuova versione compare in Bacheca -> Aggiornamenti.

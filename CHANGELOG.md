@@ -1,5 +1,9 @@
 # Novità
 
+## 3.5
+
+- Caricamento di più cataloghi PDF insieme: scegli o trascina tutti i file, controlli l'elenco (etichetta e lingua di ognuno, "lingua per tutti", cataloghi già presenti da sostituire o no, file troppo grandi da caricare via FTP) e li carichi uno dopo l'altro con l'avanzamento. Un errore su un file non ferma gli altri.
+
 ## 3.4
 
 - Prefisso dei codici interni configurabile (Pannello di controllo → Impostazioni della ricerca): FIN di base, un altro prefisso o nessuno.

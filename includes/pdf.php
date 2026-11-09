@@ -153,12 +153,30 @@ function cr_gestisci_pdf_upload() {
     if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
         return ['error' => cr_errore_upload($file['error'] ?? UPLOAD_ERR_NO_FILE)];
     }
+    return cr_salva_pdf_caricato(
+        $file,
+        wp_unslash($_POST['cr_pdf_label'] ?? ''),
+        isset($_POST['cr_pdf_lingua']) ? (string) $_POST['cr_pdf_lingua'] : null,
+        ($_POST['cr_pdf_sovrascrivi'] ?? '') === '1'
+    );
+}
 
+/**
+ * Salva un PDF appena caricato (un file di $_FILES già controllato per errori di upload).
+ * Usato dal modulo singolo e dal caricamento in blocco (un file per richiesta).
+ *
+ * @param array       $file        Voce di $_FILES.
+ * @param string      $label       Etichetta ('' = nome del file, o quella del catalogo sostituito).
+ * @param string|null $lingua      Lingua (null = non gestita, '' = non indicata).
+ * @param bool        $sovrascrivi Sostituire un catalogo con lo stesso nome.
+ * @return array ['success'=>true,'azione'=>upload|sovrascritto,'file'=>...,'label'=>...] o ['error'=>..., 'esiste'=>bool]
+ */
+function cr_salva_pdf_caricato($file, $label, $lingua, $sovrascrivi) {
     $nome = cr_nome_pdf_sicuro(wp_unslash($file['name']));
     if ($nome === '') return ['error' => 'Il file deve essere un PDF (estensione .pdf).'];
 
     // Controllo del contenuto: un PDF inizia sempre con "%PDF"
-    $fh = fopen($file['tmp_name'], 'rb');
+    $fh = is_uploaded_file($file['tmp_name']) ? fopen($file['tmp_name'], 'rb') : false;
     $testa = $fh ? fread($fh, 1024) : '';
     if ($fh) fclose($fh);
     if (strpos((string) $testa, '%PDF') === false) {
@@ -169,12 +187,11 @@ function cr_gestisci_pdf_upload() {
 
     // Esiste già un file con lo stesso nome (anche con maiuscole diverse)?
     $esistente = null;
-    foreach (cr_elenco_pdf() as $f) {
+    foreach (cr_elenco_pdf(true) as $f) {
         if (strtolower($f) === strtolower($nome)) { $esistente = $f; break; }
     }
-    $sovrascrivi = ($_POST['cr_pdf_sovrascrivi'] ?? '') === '1';
     if ($esistente && !$sovrascrivi) {
-        return ['error' => 'Esiste già un catalogo chiamato "' . $esistente . '". Nessuna modifica effettuata: ricarica il file e scegli "Sovrascrivi" per sostituirlo.'];
+        return ['error' => 'Esiste già un catalogo chiamato "' . $esistente . '". Nessuna modifica effettuata: ricarica il file e scegli "Sovrascrivi" per sostituirlo.', 'esiste' => true, 'file' => $esistente];
     }
 
     // Salvataggio su file temporaneo e rinomina finale: se qualcosa va storto
@@ -190,7 +207,7 @@ function cr_gestisci_pdf_upload() {
     }
     cr_elenco_pdf(true);
 
-    $label = trim(sanitize_text_field(wp_unslash($_POST['cr_pdf_label'] ?? '')));
+    $label = trim(sanitize_text_field((string) $label));
     if ($label === '') {
         $label = $esistente ? cr_label_pdf($esistente) : pathinfo($nome, PATHINFO_FILENAME);
     }
@@ -198,15 +215,46 @@ function cr_gestisci_pdf_upload() {
     cr_salva_label($nome, $label);
 
     // Lingua (con "Elementor Page Translator"): quella scelta, altrimenti quella del file sostituito
-    if (isset($_POST['cr_pdf_lingua'])) {
-        $lingua = cr_lingua_valida($_POST['cr_pdf_lingua']);
+    if ($lingua !== null) {
+        $lingua = cr_lingua_valida($lingua);
         if ($lingua === '' && $esistente) $lingua = cr_lingua_pdf($esistente);
         if ($esistente && $esistente !== $nome) cr_rimuovi_lingua_pdf($esistente);
         cr_salva_lingua_pdf($nome, $lingua);
     }
 
-    return ['success' => true, 'azione' => $esistente ? 'sovrascritto' : 'upload', 'file' => $nome];
+    return ['success' => true, 'azione' => $esistente ? 'sovrascritto' : 'upload', 'file' => $nome, 'label' => $label];
 }
+
+/**
+ * Caricamento in blocco: il pannello invia i PDF uno alla volta (ogni richiesta resta
+ * sotto i limiti del server e un errore su un file non ferma gli altri).
+ */
+add_action('wp_ajax_cr_pdf_carica', function () {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['messaggio' => 'Accesso negato.'], 403);
+    }
+    // File oltre post_max_size: PHP scarta tutta la richiesta, nonce compreso
+    if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+        wp_send_json_error(['messaggio' => cr_errore_upload(UPLOAD_ERR_INI_SIZE)], 413);
+    }
+    if (!check_ajax_referer('cr_pdf_blocco', 'nonce', false)) {
+        wp_send_json_error(['messaggio' => 'Sessione scaduta: ricarica la pagina e riprova.'], 403);
+    }
+    $file = $_FILES['file'] ?? null;
+    if (!$file || is_array($file['error'] ?? null) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        wp_send_json_error(['messaggio' => cr_errore_upload($file['error'] ?? UPLOAD_ERR_NO_FILE)]);
+    }
+    $ris = cr_salva_pdf_caricato(
+        $file,
+        wp_unslash($_POST['label'] ?? ''),
+        isset($_POST['lingua']) ? (string) wp_unslash($_POST['lingua']) : null,
+        ($_POST['sovrascrivi'] ?? '') === '1'
+    );
+    if (!empty($ris['error'])) {
+        wp_send_json_error(['messaggio' => $ris['error'], 'esiste' => !empty($ris['esiste'])]);
+    }
+    wp_send_json_success(['azione' => $ris['azione'], 'file' => $ris['file'], 'label' => $ris['label']]);
+});
 
 function cr_gestisci_pdf_label() {
     if ($e = cr_verifica_permessi_pdf()) return ['error' => $e];
